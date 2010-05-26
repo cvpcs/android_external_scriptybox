@@ -1,0 +1,116 @@
+#!/system/bin/sh
+#
+# The mother-load of all scripts O.O
+#
+# This script is designed to act similarly to busybox in how it
+# can have symlinks of it made and whatnot to run the commands.
+#
+
+SCRIPT_NAME=scriptybox
+
+# first assume we're using a symbolic link
+CMD=$(basename $0)
+ARG=$@
+
+# if we are calling the script directly, shift the args
+if [ "$(basename $0)" == "$SCRIPT_NAME" ] ; then
+
+	# oh noes! direct scripting! time to shift and reset
+	CMD=$1;	shift 1
+	ARG=$@
+fi
+
+# now we have a command and its arguments
+
+case $CMD in
+	ad)
+		case $ARG in
+			block)
+				echo "Blocking ads"
+				;;
+			show)
+				echo "Showing ads"
+				;;
+		esac
+		;;
+	cpuinfo)
+		cat /proc/cpuinfo
+		;;
+	freemem)
+		case $ARG in
+			50mb)
+				# 10mb,15mb,25mb,30mb,40mb,50mb
+				echo "Setting memkiller to keep 50mb of RAM free"
+				echo "2560,3840,6400,7680,10240,12800" > /sys/module/lowmemorykiller/parameters/minfree
+				;;
+			75mb)
+				# 10mb,15mb,25mb,40mb,50mb,75mb
+				echo "Setting memkiller to keep 75mb of RAM free"
+				echo "2560,3840,6400,10240,12800,19200" > /sys/module/lowmemorykiller/parameters/minfree
+				;;
+			100mb)
+				# 10mb,15mb,25mb,50mb,70mb,100mb
+				echo "Setting memkiller to keep 100mb of RAM free"
+				echo "2560,3840,6400,12800,12800,25600" > /sys/module/lowmemorykiller/parameters/minfree
+				;;
+			*)
+				# 6mb,8mb,16mb,20mb,22mb,24mb (default)
+				echo "Setting memkiller to keep 24mb of RAM free (default)"
+				echo "1536,2048,4096,5120,5632,6144" > /sys/module/lowmemorykiller/parameters/minfree
+				;;
+		esac
+		;;
+	meminfo)
+		cat /proc/meminfo
+		;;
+	shutdown)
+		echo "Powering down"
+		reboot -p
+		;;
+	sounds)
+		busybox mount -o remount,rw /system
+
+		case $ARG in
+			on)
+				echo "Enabling camera audio"
+				busybox mv /system/media/audio/ui/camera_click.bak /system/media/audio/ui/camera_click.ogg
+				busybox mv /system/media/audio/ui/VideoRecord.bak /system/media/audio/ui/VideoRecord.ogg
+				;;
+			off)
+				echo "Disabling camera audio"
+				busybox mv /system/media/audio/ui/camera_click.ogg /system/media/audio/ui/camera_click.bak
+				busybox mv /system/media/audio/ui/VideoRecord.ogg /system/media/audio/ui/VideoRecord.bak
+				;;
+		esac
+
+		busybox mount -o remount,ro /system
+		;;
+	sysro)
+		echo "Remounting /system read-only"
+		busybox mount -o remount,ro /system
+		echo "Syncing"
+		sync
+		;;
+	sysrw)
+		echo "Remounting /system read-write"
+		busybox mount -o remount,rw /system
+		;;
+	swapinfo)
+		cat /proc/swaps
+		;;
+	*)
+		echo "Available commands:"
+		echo ""
+		echo "     ads [block|show]"
+		echo "     cpuinfo"
+		echo "     freemem [50mb|75mb|100mb]"
+		echo "     meminfo"
+		echo "     shutdown"
+		echo "     sounds [on|off]"
+		echo "     sysro"
+		echo "     sysrw"
+		echo "     swapinfo"
+		;;
+esac
+
+echo "(Android $(getprop ro.build.version.release) / $(getprop ro.build.display.id) [$(getprop ro.build.id)] by $(getprop ro.rommanager.developerid))"
