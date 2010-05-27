@@ -1,9 +1,9 @@
-xbin/ads
+xbin/camsounds
 xbin/cpuinfo
 xbin/freemem
 xbin/meminfo
 xbin/shutdown
-xbin/sounds
 xbin/sysro
 xbin/sysrw
 xbin/swapinfo
+xbin/zipalign_apks

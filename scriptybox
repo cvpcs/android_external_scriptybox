@@ -7,110 +7,205 @@
 #
 
 SCRIPT_NAME=scriptybox
+SYSTEM_ETC=/system/etc
+SCRIPT_ETC="${SYSTEM_ETC}/scriptybox"
 
 # first assume we're using a symbolic link
 CMD=$(basename $0)
 ARG=$@
 
-# if we are calling the script directly, shift the args
-if [ "$(basename $0)" == "$SCRIPT_NAME" ] ; then
-
-	# oh noes! direct scripting! time to shift and reset
-	CMD=$1;	shift 1
-	ARG=$@
+# ensure we are getting an argument
+if busybox [ ! -z "${ARG}" ] ; then
+	# if we are calling the script directly, shift the args
+	if busybox [ "$(busybox basename $0)" == "${SCRIPT_NAME}" ] ; then
+		# oh noes! direct scripting! time to shift and reset
+		CMD=$1;	shift 1
+		ARG=$@
+	fi
 fi
 
-# now we have a command and its arguments
+# now we have a command and its arguments, create some useful locations
+CMD_ETC="${SCRIPT_ETC}/${CMD}"
 
-case $CMD in
-	ad)
-		case $ARG in
-			block)
-				echo "Blocking ads"
+case ${CMD} in
+	camsounds) # done
+		busybox mount -o remount,rw /system
+
+		sound_clk="/system/media/audio/ui/camera_click.ogg"
+		sound_rec="/system/media/audio/ui/VideoRecord.ogg"
+
+		case ${ARG} in
+			on)
+				busybox echo "Enabling camera audio"
+				if busybox [ -e "${sound_clk}.bak" ] ; then busybox mv "${sound_clk}.bak" "${sound_clk}"; fi
+				if busybox [ -e "${sound_rec}.bak" ] ; then busybox mv "${sound_rec}.bak" "${sound_rec}"; fi
 				;;
-			show)
-				echo "Showing ads"
+			off)
+				busybox echo "Disabling camera audio"
+				if busybox [ -e "${sound_clk}" ] ; then busybox mv "${sound_clk}" "${sound_clk}.bak"; fi
+				if busybox [ -e "${sound_rec}" ] ; then busybox mv "${sound_rec}" "${sound_rec}.bak"; fi
 				;;
+			*)
+				busybox echo "Usage:"
+				busybox echo "    camsounds [on|off]"
+				busybox echo ""
+				busybox echo "Turns the camera sounds (shutter and video cam) on or off"
+				;;				
 		esac
+
+		busybox mount -o remount,ro /system
 		;;
-	cpuinfo)
-		cat /proc/cpuinfo
+	cpuinfo) # done
+		if busybox [ -z "${ARG}" ] ; then
+			busybox cat /proc/cpuinfo
+		else
+			busybox echo "Usage:"
+			busybox echo "    cpuinfo"
+			busybox echo ""
+			busybox echo "Displays all of the CPU information for the system"
+		fi
 		;;
-	freemem)
-		case $ARG in
+	freemem) # done
+		case ${ARG} in
 			50mb)
 				# 10mb,15mb,25mb,30mb,40mb,50mb
-				echo "Setting memkiller to keep 50mb of RAM free"
-				echo "2560,3840,6400,7680,10240,12800" > /sys/module/lowmemorykiller/parameters/minfree
+				busybox echo "Setting memkiller to keep 50mb of RAM free"
+				busybox echo "2560,3840,6400,7680,10240,12800" > /sys/module/lowmemorykiller/parameters/minfree
 				;;
 			75mb)
 				# 10mb,15mb,25mb,40mb,50mb,75mb
-				echo "Setting memkiller to keep 75mb of RAM free"
-				echo "2560,3840,6400,10240,12800,19200" > /sys/module/lowmemorykiller/parameters/minfree
+				busybox echo "Setting memkiller to keep 75mb of RAM free"
+				busybox echo "2560,3840,6400,10240,12800,19200" > /sys/module/lowmemorykiller/parameters/minfree
 				;;
 			100mb)
 				# 10mb,15mb,25mb,50mb,70mb,100mb
-				echo "Setting memkiller to keep 100mb of RAM free"
-				echo "2560,3840,6400,12800,12800,25600" > /sys/module/lowmemorykiller/parameters/minfree
+				busybox echo "Setting memkiller to keep 100mb of RAM free"
+				busybox echo "2560,3840,6400,12800,12800,25600" > /sys/module/lowmemorykiller/parameters/minfree
+				;;
+			default)
+				# 6mb,8mb,16mb,20mb,22mb,24mb (default)
+				busybox echo "Setting memkiller to keep 24mb of RAM free (default)"
+				busybox echo "1536,2048,4096,5120,5632,6144" > /sys/module/lowmemorykiller/parameters/minfree
 				;;
 			*)
-				# 6mb,8mb,16mb,20mb,22mb,24mb (default)
-				echo "Setting memkiller to keep 24mb of RAM free (default)"
-				echo "1536,2048,4096,5120,5632,6144" > /sys/module/lowmemorykiller/parameters/minfree
+				busybox echo "Usage:"
+				busybox echo "    freemem [50mb|75mb|100mb|default]"
+				busybox echo ""
+				busybox echo "Configures the system to enusre that at least a given"
+				busybox echo "amount of RAM is always available"
 				;;
 		esac
 		;;
-	meminfo)
-		cat /proc/meminfo
+	meminfo) # done
+		if busybox [ -z "${ARG}" ] ; then
+			busybox cat /proc/meminfo
+		else
+			busybox echo "Usage:"
+			busybox echo "    meminfo"
+			busybox echo ""
+			busybox echo "Displays all of the memory information for the system"
+		fi
 		;;
-	shutdown)
-		echo "Powering down"
-		reboot -p
+	shutdown) # done
+		if busybox [ -z "${ARG}" ] ; then
+			busybox echo "Powering down"
+			reboot -p
+		else
+			busybox echo "Usage:"
+			busybox echo "    shutdown"
+			busybox echo ""
+			busybox echo "Powers off the phone"
+		fi
 		;;
-	sounds)
-		busybox mount -o remount,rw /system
+	sysro) # done
+		if busybox [ -z "${ARG}" ] ; then
+			busybox echo "Remounting /system read-only"
+			busybox mount -o remount,ro /system
+			busybox echo "Syncing"
+			sync
+		else
+			busybox echo "Usage:"
+			busybox echo "    sysro"
+			busybox echo ""
+			busybox echo "Mounts the /system partition read-only"
+		fi
+		;;
+	sysrw) # done
+		if busybox [ -z "${ARG}" ] ; then
+			busybox echo "Remounting /system read-write"
+			busybox mount -o remount,rw /system
+		else
+			busybox echo "Usage:"
+			busybox echo "    sysrw"
+			busybox echo ""
+			busybox echo "Mounts the /system partition read/write"
+		fi
+		;;
+	swapinfo) # done
+		if busybox [ -z "${ARG}" ] ; then
+			busybox cat /proc/swaps
+		else
+			busybox echo "Usage:"
+			busybox echo "    swapinfo"
+			busybox echo ""
+			busybox echo "Displays all of the swap information for a system"
+		fi
+		;;
+	zipalign_apks) # done
+		if busybox [ -z "${ARG}" ] ; then
+			# find our apks
+			sys_apks=$(busybox find /system -name '*.apk')
+			dat_apks=$(busybox find /data -name '*.apk')
 
-		case $ARG in
-			on)
-				echo "Enabling camera audio"
-				busybox mv /system/media/audio/ui/camera_click.bak /system/media/audio/ui/camera_click.ogg
-				busybox mv /system/media/audio/ui/VideoRecord.bak /system/media/audio/ui/VideoRecord.ogg
-				;;
-			off)
-				echo "Disabling camera audio"
-				busybox mv /system/media/audio/ui/camera_click.ogg /system/media/audio/ui/camera_click.bak
-				busybox mv /system/media/audio/ui/VideoRecord.ogg /system/media/audio/ui/VideoRecord.bak
-				;;
-		esac
+			# zipalign apks
+			busybox mount -o remount,rw /system
+			for apk in ${sys_apks} ${dat_apks}; do
+				apk_name="$(busybox basename ${apk})"
+				apk_cache="/cache/${apk_name}"
 
-		busybox mount -o remount,ro /system
-		;;
-	sysro)
-		echo "Remounting /system read-only"
-		busybox mount -o remount,ro /system
-		echo "Syncing"
-		sync
-		;;
-	sysrw)
-		echo "Remounting /system read-write"
-		busybox mount -o remount,rw /system
-		;;
-	swapinfo)
-		cat /proc/swaps
+				# check if we are already zipaligned
+				if ! zipalign -c 4 ${apk} ; then
+					busybox echo -n "${apk} - ZipAligning..."
+
+					# nope, time to zipalign
+					zipalign -f 4 "${apk}" "${apk_cache}"
+
+					# check if file exists
+					if busybox [ -e "${apk_cache}" ] ; then
+						busybox cp -f "${apk_cache}" "${apk}"
+						busybox rm "${apk_cache}"
+
+						busybox echo "done";
+					else
+						busybox echo "ERROR";
+					fi
+				else
+					busybox echo "${apk} - Already ZipAligned. Skipping..."
+				fi
+			done
+			busybox mount -o remount,ro /system
+		else
+			busybox echo "Usage:"
+			busybox echo "    zipalign_apks"
+			busybox echo ""
+			busybox echo "Automagickally zipaligns all of the APK files found on your system"
+			busybox echo "NOTE: THIS WILL ZIPALIGN ANY APK UNDER /system OR /data"
+		fi
 		;;
 	*)
-		echo "Available commands:"
-		echo ""
-		echo "     ads [block|show]"
-		echo "     cpuinfo"
-		echo "     freemem [50mb|75mb|100mb]"
-		echo "     meminfo"
-		echo "     shutdown"
-		echo "     sounds [on|off]"
-		echo "     sysro"
-		echo "     sysrw"
-		echo "     swapinfo"
+		busybox echo "Available commands:"
+		busybox echo ""
+		busybox echo "     camsounds [on|off]"
+		busybox echo "     cpuinfo"
+		busybox echo "     freemem [50mb|75mb|100mb|default]"
+		busybox echo "     meminfo"
+		busybox echo "     shutdown"
+		busybox echo "     sysro"
+		busybox echo "     sysrw"
+		busybox echo "     swapinfo"
+		busybox echo "     zipalign_apks"
 		;;
 esac
 
-echo "(Android $(getprop ro.build.version.release) / $(getprop ro.build.display.id) [$(getprop ro.build.id)] by $(getprop ro.rommanager.developerid))"
+busybox echo ""
+busybox echo "(Android $(getprop ro.build.version.release) / $(getprop ro.build.display.id) [$(getprop ro.build.id)] by $(getprop ro.rommanager.developerid))"
