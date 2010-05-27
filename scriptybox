@@ -36,14 +36,16 @@ case ${CMD} in
 
 		case ${ARG} in
 			on)
-				busybox echo "Enabling camera audio"
+				busybox echo -n "Enabling camera audio ... "
 				if busybox [ -e "${sound_clk}.bak" ] ; then busybox mv "${sound_clk}.bak" "${sound_clk}"; fi
 				if busybox [ -e "${sound_rec}.bak" ] ; then busybox mv "${sound_rec}.bak" "${sound_rec}"; fi
+				busybox echo "done"
 				;;
 			off)
-				busybox echo "Disabling camera audio"
+				busybox echo -n "Disabling camera audio ... "
 				if busybox [ -e "${sound_clk}" ] ; then busybox mv "${sound_clk}" "${sound_clk}.bak"; fi
 				if busybox [ -e "${sound_rec}" ] ; then busybox mv "${sound_rec}" "${sound_rec}.bak"; fi
+				busybox echo "done"
 				;;
 			*)
 				busybox echo "Usage:"
@@ -66,27 +68,64 @@ case ${CMD} in
 			busybox echo "Displays all of the CPU information for the system"
 		fi
 		;;
+	dalvikjit) # done
+		busybox mount -o remount,rw /system
+
+		case ${ARG} in
+			on)
+				busybox echo -n "Enabling JIT compiler in Dalvik ... "
+				busybox sed -r -i 's/(dalvik\.vm\.execution-mode=int:)fast/\1jit/' /system/build.prop
+				busybox echo "done"
+				;;
+			off)
+				busybox echo -n "Disabling JIT compiler in Dalvik ... "
+				busybox sed -r -i 's/(dalvik\.vm\.execution-mode=int:)jit/\1fast/' /system/build.prop
+				busybox echo "done"
+				;;
+			*)
+				busybox echo "Usage:"
+				busybox echo "    dalvikjit [on|off]"
+				busybox echo ""
+				busybox echo "Enables/disables the JIT compiler for the dalvik"
+				busybox echo "virtual machine."
+				;;
+		esac
+
+		busybox echo ""
+		busybox echo "NOTE: REQUIRES A REBOOT TO ACTIVATE"
+		busybox echo ""
+		busybox echo "WARNING: THIS IS THE ECLAIR JIT COMPILER AND THEREFORE"
+		busybox echo "         IS STILL SOMEWHAT UNSTABLE!  USE AT YOUR OWN"
+		busybox echo "         RISK!"
+
+		busybox mount -o remount,ro /system
+		sync
+		;;
 	freemem) # done
 		case ${ARG} in
 			50mb)
 				# 10mb,15mb,25mb,30mb,40mb,50mb
-				busybox echo "Setting memkiller to keep 50mb of RAM free"
+				busybox echo -n "Setting memkiller to keep 50mb of RAM free ... "
 				busybox echo "2560,3840,6400,7680,10240,12800" > /sys/module/lowmemorykiller/parameters/minfree
+				busybox echo "done"
 				;;
 			75mb)
 				# 10mb,15mb,25mb,40mb,50mb,75mb
-				busybox echo "Setting memkiller to keep 75mb of RAM free"
+				busybox echo -n "Setting memkiller to keep 75mb of RAM free ... "
 				busybox echo "2560,3840,6400,10240,12800,19200" > /sys/module/lowmemorykiller/parameters/minfree
+				busybox echo "done"
 				;;
 			100mb)
 				# 10mb,15mb,25mb,50mb,70mb,100mb
-				busybox echo "Setting memkiller to keep 100mb of RAM free"
+				busybox echo -n "Setting memkiller to keep 100mb of RAM free ... "
 				busybox echo "2560,3840,6400,12800,12800,25600" > /sys/module/lowmemorykiller/parameters/minfree
+				busybox echo "done"
 				;;
 			default)
 				# 6mb,8mb,16mb,20mb,22mb,24mb (default)
-				busybox echo "Setting memkiller to keep 24mb of RAM free (default)"
+				busybox echo -n "Setting memkiller to keep 24mb of RAM free (default) ... "
 				busybox echo "1536,2048,4096,5120,5632,6144" > /sys/module/lowmemorykiller/parameters/minfree
+				busybox echo "done"
 				;;
 			*)
 				busybox echo "Usage:"
@@ -107,7 +146,7 @@ case ${CMD} in
 			busybox echo "Displays all of the memory information for the system"
 		fi
 		;;
-	rmapk)
+	rmapk) # done
 		APP_NAME=""
 		APP_FILES=""
 
@@ -199,7 +238,7 @@ case ${CMD} in
 			busybox mount -o remount,rw /system
 
 			for apk in ${APP_FILES}; do
-				busybox echo -n "  Removing file: ${apk}..."
+				busybox echo -n "  Removing file: ${apk} ... "
 
 				if busybox [ -e "${apk}" ] ; then
 					# i am basenaming this to make sure nothing bad happens
@@ -216,7 +255,7 @@ case ${CMD} in
 		;;
 	shutdown) # done
 		if busybox [ -z "${ARG}" ] ; then
-			busybox echo "Powering down"
+			busybox echo "Powering down ... "
 			reboot -p
 		else
 			busybox echo "Usage:"
@@ -227,10 +266,12 @@ case ${CMD} in
 		;;
 	sysro) # done
 		if busybox [ -z "${ARG}" ] ; then
-			busybox echo "Remounting /system read-only"
+			busybox echo -n "Remounting /system read-only"
 			busybox mount -o remount,ro /system
-			busybox echo "Syncing"
+			busybox echo "done"
+			busybox echo -n "Syncing ... "
 			sync
+			busybox echo "done"
 		else
 			busybox echo "Usage:"
 			busybox echo "    sysro"
@@ -240,8 +281,9 @@ case ${CMD} in
 		;;
 	sysrw) # done
 		if busybox [ -z "${ARG}" ] ; then
-			busybox echo "Remounting /system read-write"
+			busybox echo -n "Remounting /system read-write ... "
 			busybox mount -o remount,rw /system
+			busybox echo "done"
 		else
 			busybox echo "Usage:"
 			busybox echo "    sysrw"
@@ -273,7 +315,7 @@ case ${CMD} in
 
 				# check if we are already zipaligned
 				if ! zipalign -c 4 ${apk} ; then
-					busybox echo -n "${apk} - ZipAligning..."
+					busybox echo -n "${apk} - ZipAligning ... "
 
 					# nope, time to zipalign
 					zipalign -f 4 "${apk}" "${apk_cache}"
@@ -288,7 +330,7 @@ case ${CMD} in
 						busybox echo "ERROR";
 					fi
 				else
-					busybox echo "${apk} - Already ZipAligned. Skipping..."
+					busybox echo "${apk} - Already ZipAligned. Skipping"
 				fi
 			done
 			busybox mount -o remount,ro /system
@@ -307,6 +349,7 @@ case ${CMD} in
 		busybox echo "     camsounds [on|off]"
 		busybox echo "     cpuinfo"
 		busybox echo "     freemem [50mb|75mb|100mb|default]"
+		busybox echo "     dalvikjit [on|off]"
 		busybox echo "     meminfo"
 		busybox echo "     rmapk [browser|calc|carhome|corpcal|"
 		busybox echo "            devtools|dock|email|genie|im|"

@@ -1,5 +1,6 @@
 xbin/camsounds
 xbin/cpuinfo
+xbin/dalvikjit
 xbin/freemem
 xbin/meminfo
 xbin/rmapk
