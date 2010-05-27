@@ -2,6 +2,7 @@ xbin/camsounds
 xbin/cpuinfo
 xbin/freemem
 xbin/meminfo
+xbin/rmapk
 xbin/shutdown
 xbin/sysro
 xbin/sysrw

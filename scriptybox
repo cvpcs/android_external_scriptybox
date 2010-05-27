@@ -54,6 +54,7 @@ case ${CMD} in
 		esac
 
 		busybox mount -o remount,ro /system
+		sync
 		;;
 	cpuinfo) # done
 		if busybox [ -z "${ARG}" ] ; then
@@ -104,6 +105,105 @@ case ${CMD} in
 			busybox echo "    meminfo"
 			busybox echo ""
 			busybox echo "Displays all of the memory information for the system"
+		fi
+		;;
+	rmapk)
+		APP_NAME=""
+		APP_FILES=""
+
+		case ${ARG} in
+			browser)
+				APP_NAME="Browser"
+				APP_FILES="/system/app/Browser.apk"
+				;;
+			calc)
+				APP_NAME="Calculator"
+				APP_FILES="/system/app/Calculator.apk"
+				;;
+			carhome)
+				APP_NAME="Car Home"
+				APP_FILES="/system/app/CarDock.apk"
+				;;
+			corpcal)
+				APP_NAME="Corporate Calendar"
+				APP_FILES="/system/app/CorpCal.apk"
+				;;
+			devtools)
+				APP_NAME="Dev Tools"
+				APP_FILES="/system/app/Development.apk"
+				;;
+			email)
+				APP_NAME="Email"
+				APP_FILES="/system/app/Email.apk"
+				;;
+			genie)
+				APP_NAME="News and Weather"
+				APP_FILES="/system/app/GenieWidget.apk"
+				;;
+			lwps)
+				APP_NAME="Live Wallpapers"
+				APP_FILES="/system/app/LiveWallpapers.apk /system/app/MagicSmokeWallpapers.apk /system/app/VisualizationWallpapers.apk"
+				;;
+			mms)
+				APP_NAME="MMS"
+				APP_FILES="/system/app/Mms.apk"
+				;;
+			mp3)
+				APP_NAME="Amazon MP3"
+				APP_FILES="/system/app/com.amazon.mp3.apk"
+				;;
+			qoffice)
+				APP_NAME="QuickOffice"
+				APP_FILES="/system/app/QuickOffice.apk"
+				;;
+			spare)
+				APP_NAME="Spare Parts"
+				APP_FILES="/system/app/SpareParts.apk"
+				;;
+			*)
+				busybox echo "Usage:"
+				busybox echo "     rmapk [browser|calc|carhome|corpcal|"
+				busybox echo "            devtools|email|genie|"
+				busybox echo "            lwps|mms|mp3|qoffice|spare]" # [dock|im
+				busybox echo ""
+				busybox echo "Removes applications that may be unwanted on some"
+				busybox echo "systems.  The Applications are:"
+				busybox echo "     browser - Stock browser"
+				busybox echo "     calc - Stock calculator"
+				busybox echo "     carhome - Stock car home"
+				busybox echo "     corpcal - Corporate Calendar"
+				busybox echo "     devtools - Development Tools"
+				busybox echo "     dock - ??"
+				busybox echo "     email - Stock email"
+				busybox echo "     genie - News and Weather"
+				busybox echo "     im - Stock IM"
+				busybox echo "     lwps - Live Wallpapers"
+				busybox echo "     mms - Stock MMS"
+				busybox echo "     mp3 - Amazon MP3"
+				busybox echo "     qoffice - QuickOffice"
+				busybox echo "     spare - Spare Parts"
+				;;
+		esac
+
+		if busybox [ ! -z "${APP_NAME}" ] ; then
+			busybox echo "Removing application: ${APP_NAME}"
+
+			busybox mount -o remount,rw /system
+
+			for apk in ${APP_FILES}; do
+				busybox echo -n "  Removing file: ${apk}..."
+
+				if busybox [ -e "${apk}" ] ; then
+					# i am basenaming this to make sure nothing bad happens
+					busybox rm "/system/app/$(busybox basename ${apk})"
+					busybox echo "done"
+				else
+					busybox echo "already removed"
+				fi
+			done
+
+			busybox mount -o remount,ro /system
+			sync
 		fi
 		;;
 	shutdown) # done
@@ -184,6 +284,7 @@ case ${CMD} in
 				fi
 			done
 			busybox mount -o remount,ro /system
+			sync
 		else
 			busybox echo "Usage:"
 			busybox echo "    zipalign_apks"
@@ -199,6 +300,9 @@ case ${CMD} in
 		busybox echo "     cpuinfo"
 		busybox echo "     freemem [50mb|75mb|100mb|default]"
 		busybox echo "     meminfo"
+		busybox echo "     rmapk [browser|calc|carhome|corpcal|"
+		busybox echo "            devtools|dock|email|genie|im|"
+		busybox echo "            lwps|mms|mp3|qoffice|spare]"
 		busybox echo "     shutdown"
 		busybox echo "     sysro"
 		busybox echo "     sysrw"
