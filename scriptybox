@@ -132,6 +132,10 @@ case ${CMD} in
 				APP_NAME="Dev Tools"
 				APP_FILES="/system/app/Development.apk"
 				;;
+			#dock)
+			#	APP_NAME="Dock"
+			#	APP_FILES="/system/app/Dock.apk"
+			#	;;
 			email)
 				APP_NAME="Email"
 				APP_FILES="/system/app/Email.apk"
@@ -140,6 +144,10 @@ case ${CMD} in
 				APP_NAME="News and Weather"
 				APP_FILES="/system/app/GenieWidget.apk"
 				;;
+			#im)
+			#	APP_NAME="IM"
+			#	APP_FILES="/system/app/IM.apk"
+			#	;;
 			lwps)
 				APP_NAME="Live Wallpapers"
 				APP_FILES="/system/app/LiveWallpapers.apk /system/app/MagicSmokeWallpapers.apk /system/app/VisualizationWallpapers.apk"
@@ -163,8 +171,8 @@ case ${CMD} in
 			*)
 				busybox echo "Usage:"
 				busybox echo "     rmapk [browser|calc|carhome|corpcal|"
-				busybox echo "            devtools|email|genie|"
-				busybox echo "            lwps|mms|mp3|qoffice|spare]" # [dock|im
+				busybox echo "            devtools|email|genie|lwps|"
+				busybox echo "            mms|mp3|qoffice|spare]" # dock, im
 				busybox echo ""
 				busybox echo "Removes applications that may be unwanted on some"
 				busybox echo "systems.  The Applications are:"
@@ -173,10 +181,10 @@ case ${CMD} in
 				busybox echo "     carhome - Stock car home"
 				busybox echo "     corpcal - Corporate Calendar"
 				busybox echo "     devtools - Development Tools"
-				busybox echo "     dock - ??"
+				#busybox echo "     dock - Dock"
 				busybox echo "     email - Stock email"
 				busybox echo "     genie - News and Weather"
-				busybox echo "     im - Stock IM"
+				#busybox echo "     im - Stock IM"
 				busybox echo "     lwps - Live Wallpapers"
 				busybox echo "     mms - Stock MMS"
 				busybox echo "     mp3 - Amazon MP3"
