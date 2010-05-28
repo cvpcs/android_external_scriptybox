@@ -151,6 +151,10 @@ case ${CMD} in
 		APP_FILES=""
 
 		case ${ARG} in
+			alarm)
+				APP_NAME="Alarm Clock"
+				APP_FILES="/system/app/AlarmClock.apk"
+				;;
 			browser)
 				APP_NAME="Browser"
 				APP_FILES="/system/app/Browser.apk"
@@ -166,6 +170,10 @@ case ${CMD} in
 			corpcal)
 				APP_NAME="Corporate Calendar"
 				APP_FILES="/system/app/CorpCal.apk"
+				;;
+			deskclock)
+				APP_NAME="Desk Clock"
+				APP_FILES="/system/app/DeskClock.apk"
 				;;
 			devtools)
 				APP_NAME="Dev Tools"
@@ -209,16 +217,18 @@ case ${CMD} in
 				;;
 			*)
 				busybox echo "Usage:"
-				busybox echo "     rmapk [browser|calc|carhome|corpcal|"
-				busybox echo "            devtools|email|genie|lwps|"
+				busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
+				busybox echo "            deskclock|devtools|email|genie|lwps|"
 				busybox echo "            mms|mp3|qoffice|spare]" # dock, im
 				busybox echo ""
 				busybox echo "Removes applications that may be unwanted on some"
 				busybox echo "systems.  The Applications are:"
+				busybox echo "     alarm - Alarm Clock"
 				busybox echo "     browser - Stock browser"
 				busybox echo "     calc - Stock calculator"
 				busybox echo "     carhome - Stock car home"
 				busybox echo "     corpcal - Corporate Calendar"
+				busybox echo "     deskclock - Desk Clock"
 				busybox echo "     devtools - Development Tools"
 				#busybox echo "     dock - Dock"
 				busybox echo "     email - Stock email"
