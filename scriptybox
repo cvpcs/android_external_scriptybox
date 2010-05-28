@@ -205,7 +205,7 @@ case ${CMD} in
 				;;
 			mp3)
 				APP_NAME="Amazon MP3"
-				APP_FILES="/system/app/com.amazon.mp3.apk"
+				APP_FILES="/system/app/com.amazom.mp3.apk"
 				;;
 			qoffice)
 				APP_NAME="QuickOffice"
@@ -276,7 +276,7 @@ case ${CMD} in
 		;;
 	sysro) # done
 		if busybox [ -z "${ARG}" ] ; then
-			busybox echo -n "Remounting /system read-only"
+			busybox echo -n "Remounting /system read-only ... "
 			busybox mount -o remount,ro /system
 			busybox echo "done"
 			busybox echo -n "Syncing ... "
@@ -361,9 +361,9 @@ case ${CMD} in
 		busybox echo "     freemem [50mb|75mb|100mb|default]"
 		busybox echo "     dalvikjit [on|off]"
 		busybox echo "     meminfo"
-		busybox echo "     rmapk [browser|calc|carhome|corpcal|"
-		busybox echo "            devtools|dock|email|genie|im|"
-		busybox echo "            lwps|mms|mp3|qoffice|spare]"
+		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
+		busybox echo "            deskclock|devtools|email|genie|lwps|"
+		busybox echo "            mms|mp3|qoffice|spare]" # dock, im
 		busybox echo "     shutdown"
 		busybox echo "     sysro"
 		busybox echo "     sysrw"
