@@ -8,14 +8,6 @@ LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
 LOCAL_SRC_FILES := $(LOCAL_MODULE)
 include $(BUILD_PREBUILT)
 
-copy_to := $(addprefix $(TARGET_OUT_OPTIONAL_EXECUTABLES),$(LOCAL_MODULE))
-copy_from := $(addprefix $(LOCAL_PATH)/,$(LOCAL_MODULE))
-
-$(copy_to): $(copy_from) | $(ACP)
-	$(transform-prebuilt-to-target)
-
-ALL_PREBUILT += $(copy_to)
-
 SCRIPTYBOX_LINKS := $(shell cat $(LOCAL_PATH)/scriptybox.links)
 
 # used to exclude anything
