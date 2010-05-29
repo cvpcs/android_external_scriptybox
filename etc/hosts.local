@@ -1,0 +1,6 @@
+# Sapphire Local Hosts File
+
+127.0.0.1 	localhost
+127.0.0.1 	localhost.localdomain
+255.255.255.255	broadcasthost
+0.0.0.0 	local

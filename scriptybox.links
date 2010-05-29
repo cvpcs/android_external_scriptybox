@@ -1,10 +1,11 @@
+xbin/adblock
 xbin/camsounds
 xbin/cpuinfo
 xbin/dalvikjit
 xbin/freemem
+xbin/halt
 xbin/meminfo
 xbin/rmapk
-xbin/shutdown
 xbin/sysro
 xbin/sysrw
 xbin/swapinfo

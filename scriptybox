@@ -24,10 +24,36 @@ if busybox [ ! -z "${ARG}" ] ; then
 	fi
 fi
 
-# now we have a command and its arguments, create some useful locations
-CMD_ETC="${SCRIPT_ETC}/${CMD}"
-
 case ${CMD} in
+	adblock) # done
+		busybox mount -o remount,rw /system
+
+		hostfile_local="${SCRIPT_ETC}/hosts.local"
+		hostfile_adblock="${SCRIPT_ETC}/hosts.adblock"
+
+		case ${ARG} in
+			on)
+				busybox echo -n "Enabling ad blocking ... "
+				busybox cat "${hostfile_local}" > /system/etc/hosts
+				busybox cat "${hostfile_adblock}" >> /system/etc/hosts
+				busybox echo "done"
+				;;
+			off)
+				busybox echo -n "Disabling ad blocking ... "
+				busybox cat "${hostfile_local}" > /system/etc/hosts
+				busybox echo "done"
+				;;
+			*)
+				busybox echo "Usage:"
+				busybox echo "    adblock [on|off]"
+				busybox echo ""
+				busybox echo "Turns ad blocking for the system on or off"
+				;;				
+		esac
+
+		busybox mount -o remount,ro /system
+		sync
+		;;
 	camsounds) # done
 		busybox mount -o remount,rw /system
 
@@ -136,6 +162,17 @@ case ${CMD} in
 				;;
 		esac
 		;;
+	halt) # done
+		if busybox [ -z "${ARG}" ] ; then
+			busybox echo "Powering down ... "
+			reboot -p
+		else
+			busybox echo "Usage:"
+			busybox echo "    halt"
+			busybox echo ""
+			busybox echo "Powers off the phone"
+		fi
+		;;
 	meminfo) # done
 		if busybox [ -z "${ARG}" ] ; then
 			busybox cat /proc/meminfo
@@ -147,79 +184,83 @@ case ${CMD} in
 		fi
 		;;
 	rmapk) # done
-		APP_NAME=""
-		APP_FILES=""
+		app_name=""
+		app_files=""
 
 		case ${ARG} in
 			alarm)
-				APP_NAME="Alarm Clock"
-				APP_FILES="/system/app/AlarmClock.apk"
+				app_name="Alarm Clock"
+				app_files="/system/app/AlarmClock.apk"
 				;;
 			browser)
-				APP_NAME="Browser"
-				APP_FILES="/system/app/Browser.apk"
+				app_name="Browser"
+				app_files="/system/app/Browser.apk"
 				;;
 			calc)
-				APP_NAME="Calculator"
-				APP_FILES="/system/app/Calculator.apk"
+				app_name="Calculator"
+				app_files="/system/app/Calculator.apk"
 				;;
 			carhome)
-				APP_NAME="Car Home"
-				APP_FILES="/system/app/CarDock.apk"
+				app_name="Car Home"
+				app_files="/system/app/CarDock.apk"
 				;;
 			corpcal)
-				APP_NAME="Corporate Calendar"
-				APP_FILES="/system/app/CorpCal.apk"
+				app_name="Corporate Calendar"
+				app_files="/system/app/CorpCal.apk"
 				;;
 			deskclock)
-				APP_NAME="Desk Clock"
-				APP_FILES="/system/app/DeskClock.apk"
+				app_name="Desk Clock"
+				app_files="/system/app/DeskClock.apk"
 				;;
 			devtools)
-				APP_NAME="Dev Tools"
-				APP_FILES="/system/app/Development.apk"
+				app_name="Dev Tools"
+				app_files="/system/app/Development.apk"
 				;;
 			#dock)
-			#	APP_NAME="Dock"
-			#	APP_FILES="/system/app/Dock.apk"
+			#	app_name="Dock"
+			#	app_files="/system/app/Dock.apk"
 			#	;;
 			email)
-				APP_NAME="Email"
-				APP_FILES="/system/app/Email.apk"
+				app_name="Email"
+				app_files="/system/app/Email.apk"
 				;;
 			genie)
-				APP_NAME="News and Weather"
-				APP_FILES="/system/app/GenieWidget.apk"
+				app_name="News and Weather"
+				app_files="/system/app/GenieWidget.apk"
 				;;
 			#im)
-			#	APP_NAME="IM"
-			#	APP_FILES="/system/app/IM.apk"
+			#	app_name="IM"
+			#	app_files="/system/app/IM.apk"
 			#	;;
 			lwps)
-				APP_NAME="Live Wallpapers"
-				APP_FILES="/system/app/LiveWallpapers.apk /system/app/MagicSmokeWallpapers.apk /system/app/VisualizationWallpapers.apk"
+				app_name="Live Wallpapers"
+				app_files="/system/app/LiveWallpapers.apk /system/app/MagicSmokeWallpapers.apk /system/app/VisualizationWallpapers.apk"
 				;;
 			mms)
-				APP_NAME="MMS"
-				APP_FILES="/system/app/Mms.apk"
+				app_name="MMS"
+				app_files="/system/app/Mms.apk"
 				;;
 			mp3)
-				APP_NAME="Amazon MP3"
-				APP_FILES="/system/app/com.amazom.mp3.apk"
+				app_name="Amazon MP3"
+				app_files="/system/app/com.amazom.mp3.apk"
+				;;
+			music)
+				app_name="Music"
+				app_files="/system/app/Music.apk"
 				;;
 			qoffice)
-				APP_NAME="QuickOffice"
-				APP_FILES="/system/app/QuickOffice.apk"
+				app_name="QuickOffice"
+				app_files="/system/app/QuickOffice.apk"
 				;;
 			spare)
-				APP_NAME="Spare Parts"
-				APP_FILES="/system/app/SpareParts.apk"
+				app_name="Spare Parts"
+				app_files="/system/app/SpareParts.apk"
 				;;
 			*)
 				busybox echo "Usage:"
 				busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
 				busybox echo "            deskclock|devtools|email|genie|lwps|"
-				busybox echo "            mms|mp3|qoffice|spare]" # dock, im
+				busybox echo "            mms|mp3|music|qoffice|spare]" # dock, im
 				busybox echo ""
 				busybox echo "Removes applications that may be unwanted on some"
 				busybox echo "systems.  The Applications are:"
@@ -237,17 +278,18 @@ case ${CMD} in
 				busybox echo "     lwps - Live Wallpapers"
 				busybox echo "     mms - Stock MMS"
 				busybox echo "     mp3 - Amazon MP3"
+				busybox echo "     music - Music"
 				busybox echo "     qoffice - QuickOffice"
 				busybox echo "     spare - Spare Parts"
 				;;
 		esac
 
-		if busybox [ ! -z "${APP_NAME}" ] ; then
-			busybox echo "Removing application: ${APP_NAME}"
+		if busybox [ ! -z "${app_name}" ] ; then
+			busybox echo "Removing application: ${app_name}"
 
 			busybox mount -o remount,rw /system
 
-			for apk in ${APP_FILES}; do
+			for apk in ${app_files}; do
 				busybox echo -n "  Removing file: ${apk} ... "
 
 				if busybox [ -e "${apk}" ] ; then
@@ -263,16 +305,28 @@ case ${CMD} in
 			sync
 		fi
 		;;
-	shutdown) # done
+	swapinfo) # done
 		if busybox [ -z "${ARG}" ] ; then
-			busybox echo "Powering down ... "
-			reboot -p
+			busybox cat /proc/swaps
 		else
 			busybox echo "Usage:"
-			busybox echo "    shutdown"
+			busybox echo "    swapinfo"
 			busybox echo ""
-			busybox echo "Powers off the phone"
+			busybox echo "Displays all of the swap information for a system"
 		fi
+		;;
+	switch)
+		switch_app=""
+
+		case ${ARG} in
+			clock)
+				;;
+			music)
+				;;
+			*)
+				;;
+		esac
+
 		;;
 	sysro) # done
 		if busybox [ -z "${ARG}" ] ; then
@@ -299,16 +353,6 @@ case ${CMD} in
 			busybox echo "    sysrw"
 			busybox echo ""
 			busybox echo "Mounts the /system partition read/write"
-		fi
-		;;
-	swapinfo) # done
-		if busybox [ -z "${ARG}" ] ; then
-			busybox cat /proc/swaps
-		else
-			busybox echo "Usage:"
-			busybox echo "    swapinfo"
-			busybox echo ""
-			busybox echo "Displays all of the swap information for a system"
 		fi
 		;;
 	zipalign_apks) # done
@@ -356,18 +400,20 @@ case ${CMD} in
 	*)
 		busybox echo "Available commands:"
 		busybox echo ""
+		busybox echo "     adblock [on|off]"
 		busybox echo "     camsounds [on|off]"
 		busybox echo "     cpuinfo"
-		busybox echo "     freemem [50mb|75mb|100mb|default]"
 		busybox echo "     dalvikjit [on|off]"
+		busybox echo "     freemem [50mb|75mb|100mb|default]"
+		busybox echo "     halt"
 		busybox echo "     meminfo"
 		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
 		busybox echo "            deskclock|devtools|email|genie|lwps|"
-		busybox echo "            mms|mp3|qoffice|spare]" # dock, im
-		busybox echo "     shutdown"
+		busybox echo "            mms|mp3|music|qoffice|spare]" # dock, im
+		busybox echo "     swapinfo"
+		busybox echo "     switch [clock|music]"
 		busybox echo "     sysro"
 		busybox echo "     sysrw"
-		busybox echo "     swapinfo"
 		busybox echo "     zipalign_apks"
 		;;
 esac
