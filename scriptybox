@@ -412,7 +412,7 @@ case ${CMD} in
 						busybox echo "  Switch ABORTED"
 					fi
 
-					busybox echo "  Cleaning up ... "
+					busybox echo -n "  Cleaning up ... "
 					busybox rm "/cache/${new_app_file}"
 					busybox rm "/cache/${new_app_file}.chksum"
 					busybox echo "done"
