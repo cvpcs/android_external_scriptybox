@@ -334,6 +334,11 @@ case ${CMD} in
 					old_app_file="DeskClock.apk"
 					new_app_name="2.0 Alarm Clock"
 					new_app_file="AlarmClock.apk"
+				else
+					old_app_name="2.0 Alarm Clock"
+					old_app_file="AlarmClock.apk"
+					new_app_name="2.1 Desk Clock"
+					new_app_file="DeskClock.apk"
 				fi
 				;;
 			music)
@@ -379,7 +384,7 @@ case ${CMD} in
 
 					for i in md5 sha1 sha256 sha512; do
 						busybox echo -n "    Verifying ${i} checksum ... "
-						if busybox [ busybox echo $(busybox grep "${i}" "/cache/${new_app_file}.chksum | busybox awk '{print $2 "  " $3}') | busybox "${i}sum" -c -s ] ; then
+						if busybox [ busybox echo $(busybox grep "${i}" "/cache/${new_app_file}.chksum" | busybox awk '{print $2 "  " $3}') | busybox "${i}sum" -c -s ] ; then
 							busybox echo "pass"
 						else
 							busybox echo "FAIL"
