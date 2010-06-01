@@ -6,9 +6,15 @@
 # can have symlinks of it made and whatnot to run the commands.
 #
 
+# name of this script
 SCRIPT_NAME=scriptybox
+
+# etc directories
 SYSTEM_ETC=/system/etc
 SCRIPT_ETC="${SYSTEM_ETC}/scriptybox"
+
+# location of file downloads
+FILES_URL="http://sapphire.cvpcs.org/files/$(getprop ro.build.id)"
 
 # first assume we're using a symbolic link
 CMD=$(basename $0)
@@ -315,16 +321,106 @@ case ${CMD} in
 			busybox echo "Displays all of the swap information for a system"
 		fi
 		;;
-	switch)
-		switch_app=""
+	switchapk)
+		switchapk_files_url="${FILES_URL}/switchapk"
+
+		old_app_name=""
+		old_app_file=""
+		new_app_name=""
+		new_app_file=""
+
+		# find which app we're switching
 
 		case ${ARG} in
 			clock)
+				if busybox [ -e /system/app/DeskClock.apk ] ; then
+					old_app_name="2.1 Desk Clock"
+					old_app_file="DeskClock.apk"
+					new_app_name="2.0 Alarm Clock"
+					new_app_file="AlarmClock.apk"
+				fi
 				;;
 			music)
+				if busybox [ -e /system/app/Music.apk ] ; then
+					old_app_name="2.1 Music"
+					old_app_file="Music.apk"
+					new_app_name="Milestone Music"
+					new_app_file="MilestoneMusic.apk"
+				else
+					old_app_name="Milestone Music"
+					old_app_file="MilestoneMusic.apk"
+					new_app_name="2.1 Music"
+					new_app_file="Music.apk"
+				fi
 				;;
 			*)
+				busybox echo "Usage:"
+				busybox echo "    switchapk [clock|music]"
+				busybox echo ""
+				busybox echo "Switches default applications for the following:"
+				busybox echo "    clock - 2.1 and 2.0 clocks"
+				busybox echo "    music - 2.1 and milestone music"
 				;;
+
+			if busybox [ ! -z "${new_app_name}" ] ; then
+				busybox echo "Replacing ${old_app_name} with ${new_app_name} ..."
+
+				busybox echo "  Downloading required files:"
+				busybox echo -n "    ${new_app_file} ... "
+				busybox wget -q -O "/cache/${new_app_file}" "${switchapk_files_url}/${new_app_file}"
+				if busybox [ -e "/cache/${new_app_file}" ] ; then
+					busybox echo "done"
+
+					busybox echo -n "    ${new_app_file}.chksum ... "
+					busybox wget -q -O "/cache/${new_app_file}.chksum" "${switchapk_files_url}/${new_app_file}.chksum"
+					if busybox [ -e "/cache/${new_app_file}.chksum" ] ; then
+						busybox echo "done"
+
+						busybox echo "  Verifying download:"
+
+						chksum_passed="1"
+
+						for i in md5 sha1 sha256 sha512; do
+							busybox echo -n "    Verifying ${i} checksum ... "
+							if busybox [ busybox echo $(busybox grep "${i}" "/cache/${new_app_file}.chksum | busybox awk '{print $2 "  " $3}') | busybox "${i}sum" -c -s ] ; then
+								busybox echo "pass"
+							else
+								busybox echo "FAIL"
+								chksum_passed="0"
+							fi
+						done
+
+						if busybox [ "$chksum_passed" -eq "1" ] ; then
+							busybox echo -n "  Switching apks ... ";
+							busybox mount -o remount,rw /system
+
+							if busybox [ -e "/system/app/${old_app_file}" ] ; then
+								busybox rm "/system/app/${old_app_file}"
+							fi
+
+							busybox cp "/cache/${new_app_file}" "/system/app/${new_app_file}"
+							busybox chown 0.0 "/system/app/${new_app_file}"
+							busybox chmod 644 "/system/app/${new_app_file}"
+
+							busybox mount -o remount,ro /system
+							sync
+							busybox echo "done"
+						else
+							busybox echo "  There was an error verifying your downloads"
+							busybox echo "  Switch ABORTED"
+						fi
+
+						busybox echo "  Cleaning up ... "
+						busybox rm "/cache/${new_app_file}"
+						busybox rm "/cache/${new_app_file}.chksum"
+						busybox echo "done"
+					else
+						busybox echo "FAILED"
+					fi
+				else
+					busybox echo "FAILED"
+				fi
+			fi
 		esac
 
 		;;
@@ -411,7 +507,7 @@ case ${CMD} in
 		busybox echo "            deskclock|devtools|email|genie|lwps|"
 		busybox echo "            mms|mp3|music|qoffice|spare]" # dock, im
 		busybox echo "     swapinfo"
-		busybox echo "     switch [clock|music]"
+		busybox echo "     switchapk [clock|music]"
 		busybox echo "     sysro"
 		busybox echo "     sysrw"
 		busybox echo "     zipalign_apks"

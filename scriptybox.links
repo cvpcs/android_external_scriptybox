@@ -9,4 +9,5 @@ xbin/rmapk
 xbin/sysro
 xbin/sysrw
 xbin/swapinfo
+xbin/switchapk
 xbin/zipalign_apks
