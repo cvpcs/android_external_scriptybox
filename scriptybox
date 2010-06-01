@@ -32,7 +32,7 @@ fi
 
 case ${CMD} in
 	adblock) # done
-		scriptybox sysrw
+		scriptybox sysrw > /dev/null
 
 		hostfile_local="${SCRIPT_ETC}/hosts.local"
 		hostfile_adblock="${SCRIPT_ETC}/hosts.adblock"
@@ -57,10 +57,10 @@ case ${CMD} in
 				;;				
 		esac
 
-		scriptybox sysro
+		scriptybox sysro > /dev/null
 		;;
 	camsounds) # done
-		scriptybox sysrw
+		scriptybox sysrw > /dev/null
 
 		sound_clk="/system/media/audio/ui/camera_click.ogg"
 		sound_rec="/system/media/audio/ui/VideoRecord.ogg"
@@ -86,7 +86,7 @@ case ${CMD} in
 				;;				
 		esac
 
-		scriptybox sysro
+		scriptybox sysro > /dev/null
 		;;
 	cpuinfo) # done
 		if busybox [ -z "${ARG}" ] ; then
@@ -99,7 +99,7 @@ case ${CMD} in
 		fi
 		;;
 	dalvikjit) # done
-		scriptybox sysrw
+		scriptybox sysrw > /dev/null
 
 		case ${ARG} in
 			on)
@@ -128,7 +128,7 @@ case ${CMD} in
 		busybox echo "         IS STILL SOMEWHAT UNSTABLE!  USE AT YOUR OWN"
 		busybox echo "         RISK!"
 
-		scriptybox sysro
+		scriptybox sysro > /dev/null
 		;;
 	freemem) # done
 		case ${ARG} in
@@ -290,7 +290,7 @@ case ${CMD} in
 		if busybox [ ! -z "${app_name}" ] ; then
 			busybox echo "Removing application: ${app_name}"
 
-			scriptybox sysrw
+			scriptybox sysrw > /dev/null
 
 			for apk in ${app_files}; do
 				busybox echo -n "  Removing file: ${apk} ... "
@@ -304,7 +304,7 @@ case ${CMD} in
 				fi
 			done
 
-			scriptybox sysro
+			scriptybox sysro > /dev/null
 		fi
 		;;
 	swapinfo) # done
@@ -394,7 +394,7 @@ case ${CMD} in
 
 					if busybox [ "$chksum_passed" -eq "1" ] ; then
 						busybox echo -n "  Switching apks ... ";
-						scriptybox sysrw
+						scriptybox sysrw > /dev/null
 
 
 						if busybox [ -e "/system/app/${old_app_file}" ] ; then
@@ -405,7 +405,7 @@ case ${CMD} in
 						busybox chown 0.0 "/system/app/${new_app_file}"
 						busybox chmod 644 "/system/app/${new_app_file}"
 
-						scriptybox sysro
+						scriptybox sysro > /dev/null
 						busybox echo "done"
 					else
 						busybox echo "  There was an error verifying your downloads"
@@ -459,7 +459,7 @@ case ${CMD} in
 			dat_apks=$(busybox find /data -name '*.apk')
 
 			# zipalign apks
-			scriptybox sysrw
+			scriptybox sysrw > /dev/null
 			for apk in ${sys_apks} ${dat_apks}; do
 				apk_name="$(busybox basename ${apk})"
 				apk_cache="/cache/${apk_name}"
@@ -484,7 +484,7 @@ case ${CMD} in
 					busybox echo "${apk} - Already ZipAligned. Skipping"
 				fi
 			done
-			scriptybox sysro
+			scriptybox sysro > /dev/null
 		else
 			busybox echo "Usage:"
 			busybox echo "    zipalign_apks"
