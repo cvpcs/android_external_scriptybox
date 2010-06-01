@@ -32,7 +32,7 @@ fi
 
 case ${CMD} in
 	adblock) # done
-		busybox mount -o remount,rw /system
+		scriptybox sysrw
 
 		hostfile_local="${SCRIPT_ETC}/hosts.local"
 		hostfile_adblock="${SCRIPT_ETC}/hosts.adblock"
@@ -57,11 +57,10 @@ case ${CMD} in
 				;;				
 		esac
 
-		busybox mount -o remount,ro /system
-		sync
+		scriptybox sysro
 		;;
 	camsounds) # done
-		busybox mount -o remount,rw /system
+		scriptybox sysrw
 
 		sound_clk="/system/media/audio/ui/camera_click.ogg"
 		sound_rec="/system/media/audio/ui/VideoRecord.ogg"
@@ -87,8 +86,7 @@ case ${CMD} in
 				;;				
 		esac
 
-		busybox mount -o remount,ro /system
-		sync
+		scriptybox sysro
 		;;
 	cpuinfo) # done
 		if busybox [ -z "${ARG}" ] ; then
@@ -101,7 +99,7 @@ case ${CMD} in
 		fi
 		;;
 	dalvikjit) # done
-		busybox mount -o remount,rw /system
+		scriptybox sysrw
 
 		case ${ARG} in
 			on)
@@ -130,8 +128,7 @@ case ${CMD} in
 		busybox echo "         IS STILL SOMEWHAT UNSTABLE!  USE AT YOUR OWN"
 		busybox echo "         RISK!"
 
-		busybox mount -o remount,ro /system
-		sync
+		scriptybox sysro
 		;;
 	freemem) # done
 		case ${ARG} in
@@ -293,7 +290,7 @@ case ${CMD} in
 		if busybox [ ! -z "${app_name}" ] ; then
 			busybox echo "Removing application: ${app_name}"
 
-			busybox mount -o remount,rw /system
+			scriptybox sysrw
 
 			for apk in ${app_files}; do
 				busybox echo -n "  Removing file: ${apk} ... "
@@ -307,8 +304,7 @@ case ${CMD} in
 				fi
 			done
 
-			busybox mount -o remount,ro /system
-			sync
+			scriptybox sysro
 		fi
 		;;
 	swapinfo) # done
@@ -361,67 +357,67 @@ case ${CMD} in
 				busybox echo "    clock - 2.1 and 2.0 clocks"
 				busybox echo "    music - 2.1 and milestone music"
 				;;
+		esac
 
-			if busybox [ ! -z "${new_app_name}" ] ; then
-				busybox echo "Replacing ${old_app_name} with ${new_app_name} ..."
+		if busybox [ ! -z "${new_app_name}" ] ; then
+			busybox echo "Replacing ${old_app_name} with ${new_app_name} ..."
 
-				busybox echo "  Downloading required files:"
-				busybox echo -n "    ${new_app_file} ... "
-				busybox wget -q -O "/cache/${new_app_file}" "${switchapk_files_url}/${new_app_file}"
-				if busybox [ -e "/cache/${new_app_file}" ] ; then
+			busybox echo "  Downloading required files:"
+			busybox echo -n "    ${new_app_file} ... "
+			busybox wget -q -O "/cache/${new_app_file}" "${switchapk_files_url}/${new_app_file}"
+			if busybox [ -e "/cache/${new_app_file}" ] ; then
+				busybox echo "done"
+
+				busybox echo -n "    ${new_app_file}.chksum ... "
+				busybox wget -q -O "/cache/${new_app_file}.chksum" "${switchapk_files_url}/${new_app_file}.chksum"
+				if busybox [ -e "/cache/${new_app_file}.chksum" ] ; then
 					busybox echo "done"
 
-					busybox echo -n "    ${new_app_file}.chksum ... "
-					busybox wget -q -O "/cache/${new_app_file}.chksum" "${switchapk_files_url}/${new_app_file}.chksum"
-					if busybox [ -e "/cache/${new_app_file}.chksum" ] ; then
-						busybox echo "done"
+					busybox echo "  Verifying download:"
 
-						busybox echo "  Verifying download:"
+					chksum_passed="1"
 
-						chksum_passed="1"
-
-						for i in md5 sha1 sha256 sha512; do
-							busybox echo -n "    Verifying ${i} checksum ... "
-							if busybox [ busybox echo $(busybox grep "${i}" "/cache/${new_app_file}.chksum | busybox awk '{print $2 "  " $3}') | busybox "${i}sum" -c -s ] ; then
-								busybox echo "pass"
-							else
-								busybox echo "FAIL"
-								chksum_passed="0"
-							fi
-						done
-
-						if busybox [ "$chksum_passed" -eq "1" ] ; then
-							busybox echo -n "  Switching apks ... ";
-							busybox mount -o remount,rw /system
-
-							if busybox [ -e "/system/app/${old_app_file}" ] ; then
-								busybox rm "/system/app/${old_app_file}"
-							fi
-
-							busybox cp "/cache/${new_app_file}" "/system/app/${new_app_file}"
-							busybox chown 0.0 "/system/app/${new_app_file}"
-							busybox chmod 644 "/system/app/${new_app_file}"
-
-							busybox mount -o remount,ro /system
-							sync
-							busybox echo "done"
+					for i in md5 sha1 sha256 sha512; do
+						busybox echo -n "    Verifying ${i} checksum ... "
+						if busybox [ busybox echo $(busybox grep "${i}" "/cache/${new_app_file}.chksum | busybox awk '{print $2 "  " $3}') | busybox "${i}sum" -c -s ] ; then
+							busybox echo "pass"
 						else
-							busybox echo "  There was an error verifying your downloads"
-							busybox echo "  Switch ABORTED"
+							busybox echo "FAIL"
+							chksum_passed="0"
+						fi
+					done
+
+					if busybox [ "$chksum_passed" -eq "1" ] ; then
+						busybox echo -n "  Switching apks ... ";
+						scriptybox sysrw
+
+
+						if busybox [ -e "/system/app/${old_app_file}" ] ; then
+							busybox rm "/system/app/${old_app_file}"
 						fi
 
-						busybox echo "  Cleaning up ... "
-						busybox rm "/cache/${new_app_file}"
-						busybox rm "/cache/${new_app_file}.chksum"
+						busybox cp "/cache/${new_app_file}" "/system/app/${new_app_file}"
+						busybox chown 0.0 "/system/app/${new_app_file}"
+						busybox chmod 644 "/system/app/${new_app_file}"
+
+						scriptybox sysro
 						busybox echo "done"
 					else
-						busybox echo "FAILED"
+						busybox echo "  There was an error verifying your downloads"
+						busybox echo "  Switch ABORTED"
 					fi
+
+					busybox echo "  Cleaning up ... "
+					busybox rm "/cache/${new_app_file}"
+					busybox rm "/cache/${new_app_file}.chksum"
+					busybox echo "done"
 				else
 					busybox echo "FAILED"
 				fi
+			else
+				busybox echo "FAILED"
 			fi
-		esac
+		fi
 
 		;;
 	sysro) # done
@@ -458,7 +454,7 @@ case ${CMD} in
 			dat_apks=$(busybox find /data -name '*.apk')
 
 			# zipalign apks
-			busybox mount -o remount,rw /system
+			scriptybox sysrw
 			for apk in ${sys_apks} ${dat_apks}; do
 				apk_name="$(busybox basename ${apk})"
 				apk_cache="/cache/${apk_name}"
@@ -483,8 +479,7 @@ case ${CMD} in
 					busybox echo "${apk} - Already ZipAligned. Skipping"
 				fi
 			done
-			busybox mount -o remount,ro /system
-			sync
+			scriptybox sysro
 		else
 			busybox echo "Usage:"
 			busybox echo "    zipalign_apks"
