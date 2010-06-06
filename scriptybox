@@ -1,4 +1,4 @@
-#!/system/bin/sh
+#!/system/xbin/bash
 #
 # The mother-load of all scripts O.O
 #
@@ -20,6 +20,49 @@ FILES_URL="http://sapphire.cvpcs.org/files/$(getprop ro.build.id)"
 CMD=$(basename $0)
 ARG=$@
 
+# declare our internal functions
+function __sysro () {
+	# loop until we are unmounted, or fail
+	retry=5
+	remounted=1
+	while busybox [ ${retry} -gt 0 ] ; do
+		busybox mount -o remount,ro /system 2>/dev/null
+
+		if busybox [ -z "$(busybox mount | busybox grep "/system" | busybox grep ro)" ] ; then
+			busybox sleep 5s
+			retry=$(busybox expr ${retry} - 1)
+		else
+			retry=0
+			remounted=0
+		fi
+	done
+
+	if busybox [ ${remounted} == 0 ] ; then
+		sync
+	fi
+
+	return ${remounted}
+}
+
+function __sysrw () {
+	# loop until we are mounted, or fail
+	retry=5
+	remounted=1
+	while busybox [ ${retry} -gt 0 ] ; do
+		busybox mount -o remount,rw /system 2>/dev/null
+
+		if busybox [ -z "$(busybox mount | busybox grep "/system" | busybox grep rw)" ] ; then
+			busybox sleep 5s
+			retry=$(busybox expr ${retry} - 1)
+		else
+			retry=0
+			remounted=0
+		fi
+	done
+
+	return ${remounted};
+}
+
 # ensure we are getting an argument
 if busybox [ ! -z "${ARG}" ] ; then
 	# if we are calling the script directly, shift the args
@@ -32,7 +75,7 @@ fi
 
 case ${CMD} in
 	adblock) # done
-		scriptybox sysrw > /dev/null
+		__sysrw
 
 		hostfile_local="${SCRIPT_ETC}/hosts.local"
 		hostfile_adblock="${SCRIPT_ETC}/hosts.adblock"
@@ -54,13 +97,13 @@ case ${CMD} in
 				busybox echo "    adblock [on|off]"
 				busybox echo ""
 				busybox echo "Turns ad blocking for the system on or off"
-				;;				
+				;;
 		esac
 
-		scriptybox sysro > /dev/null
+		__sysro
 		;;
 	camsounds) # done
-		scriptybox sysrw > /dev/null
+		__sysrw
 
 		sound_clk="/system/media/audio/ui/camera_click.ogg"
 		sound_rec="/system/media/audio/ui/VideoRecord.ogg"
@@ -86,7 +129,7 @@ case ${CMD} in
 				;;				
 		esac
 
-		scriptybox sysro > /dev/null
+		__sysro
 		;;
 	cpuinfo) # done
 		if busybox [ -z "${ARG}" ] ; then
@@ -99,7 +142,7 @@ case ${CMD} in
 		fi
 		;;
 	dalvikjit) # done
-		scriptybox sysrw > /dev/null
+		__sysrw
 
 		case ${ARG} in
 			on)
@@ -128,7 +171,7 @@ case ${CMD} in
 		busybox echo "         IS STILL SOMEWHAT UNSTABLE!  USE AT YOUR OWN"
 		busybox echo "         RISK!"
 
-		scriptybox sysro > /dev/null
+		__sysro
 		;;
 	freemem) # done
 		case ${ARG} in
@@ -290,7 +333,7 @@ case ${CMD} in
 		if busybox [ ! -z "${app_name}" ] ; then
 			busybox echo "Removing application: ${app_name}"
 
-			scriptybox sysrw > /dev/null
+			__sysrw
 
 			for apk in ${app_files}; do
 				busybox echo -n "  Removing file: ${apk} ... "
@@ -304,7 +347,7 @@ case ${CMD} in
 				fi
 			done
 
-			scriptybox sysro > /dev/null
+			__sysro
 		fi
 		;;
 	swapinfo) # done
@@ -394,7 +437,7 @@ case ${CMD} in
 
 					if busybox [ "$chksum_passed" -eq "1" ] ; then
 						busybox echo -n "  Switching apks ... ";
-						scriptybox sysrw > /dev/null
+						__sysrw
 
 
 						if busybox [ -e "/system/app/${old_app_file}" ] ; then
@@ -405,7 +448,7 @@ case ${CMD} in
 						busybox chown 0.0 "/system/app/${new_app_file}"
 						busybox chmod 644 "/system/app/${new_app_file}"
 
-						scriptybox sysro > /dev/null
+						__sysro
 						busybox echo "done"
 					else
 						busybox echo "  There was an error verifying your downloads"
@@ -428,7 +471,7 @@ case ${CMD} in
 	sysro) # done
 		if busybox [ -z "${ARG}" ] ; then
 			busybox echo -n "Remounting /system read-only ... "
-			busybox mount -o remount,ro /system
+			__sysro
 			busybox echo "done"
 			busybox echo -n "Syncing ... "
 			sync
@@ -443,7 +486,7 @@ case ${CMD} in
 	sysrw) # done
 		if busybox [ -z "${ARG}" ] ; then
 			busybox echo -n "Remounting /system read-write ... "
-			busybox mount -o remount,rw /system
+			__sysrw
 			busybox echo "done"
 		else
 			busybox echo "Usage:"
@@ -459,7 +502,7 @@ case ${CMD} in
 			dat_apks=$(busybox find /data -name '*.apk')
 
 			# zipalign apks
-			scriptybox sysrw > /dev/null
+			__sysrw
 			for apk in ${sys_apks} ${dat_apks}; do
 				apk_name="$(busybox basename ${apk})"
 				apk_cache="/cache/${apk_name}"
@@ -484,7 +527,7 @@ case ${CMD} in
 					busybox echo "${apk} - Already ZipAligned. Skipping"
 				fi
 			done
-			scriptybox sysro > /dev/null
+			__sysro
 		else
 			busybox echo "Usage:"
 			busybox echo "    zipalign_apks"
