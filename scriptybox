@@ -115,6 +115,7 @@ function __freemem () {
 			75mb)
 				# 10mb,15mb,25mb,40mb,50mb,75mb
 				__freemem_helper 2560 3840 6400 10240 12800 19200
+				;;
 			100mb)
 				# 10mb,15mb,25mb,50mb,70mb,100mb
 				__freemem_helper 2560 3840 6400 12800 12800 25600
