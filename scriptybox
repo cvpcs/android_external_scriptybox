@@ -20,47 +20,195 @@ FILES_URL="http://sapphire.cvpcs.org/files/$(getprop ro.build.id)"
 CMD=$(basename $0)
 ARG=$@
 
-# declare our internal functions
-function __sysro () {
-	# loop until we are unmounted, or fail
-	retry=5
-	remounted=1
-	while busybox [ ${retry} -gt 0 ] ; do
-		busybox mount -o remount,ro /system 2>/dev/null
+# declare our internal commands
+function __adblock () {
+	hostfile_local="${SCRIPT_ETC}/hosts.local"
+	hostfile_adblock="${SCRIPT_ETC}/hosts.adblock"
 
-		if busybox [ -z "$(busybox mount | busybox grep "/system" | busybox grep ro)" ] ; then
-			busybox sleep 5s
-			retry=$(busybox expr ${retry} - 1)
-		else
-			retry=0
-			remounted=0
-		fi
-	done
+	if busybox [ $# == 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    adblock [on|off]"
+		busybox echo ""
+		busybox echo "Turns ad blocking for the system on or off"
+	else
+		__sysrw 2>/dev/null
 
-	if busybox [ ${remounted} == 0 ] ; then
-		sync
+		case $1 in
+			on)
+				busybox echo -n "Enabling ad blocking ... "
+				busybox cat "${hostfile_local}" > /system/etc/hosts
+				busybox cat "${hostfile_adblock}" >> /system/etc/hosts
+				busybox echo "done"
+			;;
+			off)
+				busybox echo -n "Disabling ad blocking ... "
+				busybox cat "${hostfile_local}" > /system/etc/hosts
+				busybox echo "done"
+			;;
+			*)
+				busybox echo "Did not understand [$1]"
+			;;
+		esac
+
+		__sysro 2>/dev/null
 	fi
+}
 
-	return ${remounted}
+function __camsounds () {
+	sound_clk="/system/media/audio/ui/camera_click.ogg"
+	sound_rec="/system/media/audio/ui/VideoRecord.ogg"
+
+	if busybox [ $# == 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    camsounds [on|off]"
+		busybox echo ""
+		busybox echo "Turns the camera sounds (shutter and video cam) on or off"
+	else
+		__sysrw 2>/dev/null
+
+		case $1 in
+			on)
+				busybox echo -n "Enabling camera audio ... "
+				if busybox [ -e "${sound_clk}.bak" ] ; then busybox mv "${sound_clk}.bak" "${sound_clk}"; fi
+				if busybox [ -e "${sound_rec}.bak" ] ; then busybox mv "${sound_rec}.bak" "${sound_rec}"; fi
+				busybox echo "done"
+				;;
+			off)
+				busybox echo -n "Disabling camera audio ... "
+				if busybox [ -e "${sound_clk}" ] ; then busybox mv "${sound_clk}" "${sound_clk}.bak"; fi
+				if busybox [ -e "${sound_rec}" ] ; then busybox mv "${sound_rec}" "${sound_rec}.bak"; fi
+				busybox echo "done"
+				;;
+			*)
+				busybox echo "Did not understand [$1]"
+				;;
+		esac
+
+		__sysro 2>/dev/null
+	fi
+}
+
+function __cpuinfo () {
+	if busybox [ $# -gt 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    cpuinfo"
+		busybox echo ""
+		busybox echo "Displays all of the CPU information for the system"
+	else
+		busybox cat /proc/cpuinfo
+	fi
+}
+
+function __freemem () {
+	if busybox [ $# == 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    freemem [50mb|75mb|100mb|default]"
+		busybox echo ""
+		busybox echo "Configures the system to enusre that at least a given"
+		busybox echo "amount of RAM is always available"
+	else
+		case $1 in
+			50mb)
+				# 10mb,15mb,25mb,30mb,40mb,50mb
+				__freemem_helper 2560 3840 6400 7680 10240 12800
+				;;
+			75mb)
+				# 10mb,15mb,25mb,40mb,50mb,75mb
+				__freemem_helper 2560 3840 6400 10240 12800 19200
+			100mb)
+				# 10mb,15mb,25mb,50mb,70mb,100mb
+				__freemem_helper 2560 3840 6400 12800 12800 25600
+				;;
+			default)
+				# 6mb,8mb,16mb,20mb,22mb,24mb (default)
+				__freemem_helper 1536 2048 4096 5120 5632 6144
+				;;
+			*)
+				busybox echo "Did not understand [$1]"
+				;;
+		esac
+	fi
+}
+
+function __freemem_helper () {
+	if busybox [ $# == 6 ] ; then
+		busybox echo -n "Setting memkiller to keep $(busybox expr $6 \* 4 / 1024)mb of RAM free ... "
+		busybox echo "$1,$2,$3,$4,$5,$6" > /sys/module/lowmemorykiller/parameters/minfree
+		busybox echo "done"
+	else
+		busybox echo "Unable to set memkiller ... "
+	fi
+}
+
+function __halt () {
+	if busybox [ $# -gt 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    halt"
+		busybox echo ""
+		busybox echo "Powers off the phone"
+	else
+		busybox echo "Powering down ... "
+		reboot -p
+	fi
+}
+
+function __meminfo () {
+	if busybox [ $# -gt 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    meminfo"
+		busybox echo ""
+		busybox echo "Displays all of the memory information for the system"
+	else
+		busybox cat /proc/meminfo
+	fi
+}
+
+function __swapinfo () {
+	if busybox [ $# -gt 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    swapinfo"
+		busybox echo ""
+		busybox echo "Displays all of the swap information for a system"
+	else
+		busybox cat /proc/swaps
+	fi
+}
+
+function __sysro () {
+	if busybox [ $# -gt 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    sysro"
+		busybox echo ""
+		busybox echo "Mounts the /system partition read-only"
+	else
+		busybox echo -n "Remounting /system read-only ... "
+
+		# sleep for 5 seconds to guarantee the system is done
+		busybox sleep 5s
+		busybox mount -o remount,ro /system
+
+		busybox echo "done"
+		busybox echo -n "Syncing ... "
+		sync
+		busybox echo "done"
+	fi
 }
 
 function __sysrw () {
-	# loop until we are mounted, or fail
-	retry=5
-	remounted=1
-	while busybox [ ${retry} -gt 0 ] ; do
-		busybox mount -o remount,rw /system 2>/dev/null
+	if busybox [ $# -gt 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    sysrw"
+		busybox echo ""
+		busybox echo "Mounts the /system partition read/write"
+	else
+		busybox echo -n "Remounting /system read-write ... "
 
-		if busybox [ -z "$(busybox mount | busybox grep "/system" | busybox grep rw)" ] ; then
-			busybox sleep 5s
-			retry=$(busybox expr ${retry} - 1)
-		else
-			retry=0
-			remounted=0
-		fi
-	done
+		# sleep in case the device is busy
+		busybox sleep 5s
+		busybox mount -o remount,rw /system
 
-	return ${remounted};
+		busybox echo "done"
+	fi
 }
 
 # ensure we are getting an argument
@@ -75,71 +223,13 @@ fi
 
 case ${CMD} in
 	adblock) # done
-		__sysrw
-
-		hostfile_local="${SCRIPT_ETC}/hosts.local"
-		hostfile_adblock="${SCRIPT_ETC}/hosts.adblock"
-
-		case ${ARG} in
-			on)
-				busybox echo -n "Enabling ad blocking ... "
-				busybox cat "${hostfile_local}" > /system/etc/hosts
-				busybox cat "${hostfile_adblock}" >> /system/etc/hosts
-				busybox echo "done"
-				;;
-			off)
-				busybox echo -n "Disabling ad blocking ... "
-				busybox cat "${hostfile_local}" > /system/etc/hosts
-				busybox echo "done"
-				;;
-			*)
-				busybox echo "Usage:"
-				busybox echo "    adblock [on|off]"
-				busybox echo ""
-				busybox echo "Turns ad blocking for the system on or off"
-				;;
-		esac
-
-		__sysro
+		__adblock ${ARG}
 		;;
 	camsounds) # done
-		__sysrw
-
-		sound_clk="/system/media/audio/ui/camera_click.ogg"
-		sound_rec="/system/media/audio/ui/VideoRecord.ogg"
-
-		case ${ARG} in
-			on)
-				busybox echo -n "Enabling camera audio ... "
-				if busybox [ -e "${sound_clk}.bak" ] ; then busybox mv "${sound_clk}.bak" "${sound_clk}"; fi
-				if busybox [ -e "${sound_rec}.bak" ] ; then busybox mv "${sound_rec}.bak" "${sound_rec}"; fi
-				busybox echo "done"
-				;;
-			off)
-				busybox echo -n "Disabling camera audio ... "
-				if busybox [ -e "${sound_clk}" ] ; then busybox mv "${sound_clk}" "${sound_clk}.bak"; fi
-				if busybox [ -e "${sound_rec}" ] ; then busybox mv "${sound_rec}" "${sound_rec}.bak"; fi
-				busybox echo "done"
-				;;
-			*)
-				busybox echo "Usage:"
-				busybox echo "    camsounds [on|off]"
-				busybox echo ""
-				busybox echo "Turns the camera sounds (shutter and video cam) on or off"
-				;;				
-		esac
-
-		__sysro
+		__camsounds ${ARG}
 		;;
 	cpuinfo) # done
-		if busybox [ -z "${ARG}" ] ; then
-			busybox cat /proc/cpuinfo
-		else
-			busybox echo "Usage:"
-			busybox echo "    cpuinfo"
-			busybox echo ""
-			busybox echo "Displays all of the CPU information for the system"
-		fi
+		__cpuinfo ${ARG}
 		;;
 	dalvikjit) # done
 		__sysrw
@@ -174,60 +264,13 @@ case ${CMD} in
 		__sysro
 		;;
 	freemem) # done
-		case ${ARG} in
-			50mb)
-				# 10mb,15mb,25mb,30mb,40mb,50mb
-				busybox echo -n "Setting memkiller to keep 50mb of RAM free ... "
-				busybox echo "2560,3840,6400,7680,10240,12800" > /sys/module/lowmemorykiller/parameters/minfree
-				busybox echo "done"
-				;;
-			75mb)
-				# 10mb,15mb,25mb,40mb,50mb,75mb
-				busybox echo -n "Setting memkiller to keep 75mb of RAM free ... "
-				busybox echo "2560,3840,6400,10240,12800,19200" > /sys/module/lowmemorykiller/parameters/minfree
-				busybox echo "done"
-				;;
-			100mb)
-				# 10mb,15mb,25mb,50mb,70mb,100mb
-				busybox echo -n "Setting memkiller to keep 100mb of RAM free ... "
-				busybox echo "2560,3840,6400,12800,12800,25600" > /sys/module/lowmemorykiller/parameters/minfree
-				busybox echo "done"
-				;;
-			default)
-				# 6mb,8mb,16mb,20mb,22mb,24mb (default)
-				busybox echo -n "Setting memkiller to keep 24mb of RAM free (default) ... "
-				busybox echo "1536,2048,4096,5120,5632,6144" > /sys/module/lowmemorykiller/parameters/minfree
-				busybox echo "done"
-				;;
-			*)
-				busybox echo "Usage:"
-				busybox echo "    freemem [50mb|75mb|100mb|default]"
-				busybox echo ""
-				busybox echo "Configures the system to enusre that at least a given"
-				busybox echo "amount of RAM is always available"
-				;;
-		esac
+		__freemem ${ARG}
 		;;
 	halt) # done
-		if busybox [ -z "${ARG}" ] ; then
-			busybox echo "Powering down ... "
-			reboot -p
-		else
-			busybox echo "Usage:"
-			busybox echo "    halt"
-			busybox echo ""
-			busybox echo "Powers off the phone"
-		fi
+		__halt ${ARG}
 		;;
 	meminfo) # done
-		if busybox [ -z "${ARG}" ] ; then
-			busybox cat /proc/meminfo
-		else
-			busybox echo "Usage:"
-			busybox echo "    meminfo"
-			busybox echo ""
-			busybox echo "Displays all of the memory information for the system"
-		fi
+		__meminfo ${ARG}
 		;;
 	rmapk) # done
 		app_name=""
@@ -351,14 +394,7 @@ case ${CMD} in
 		fi
 		;;
 	swapinfo) # done
-		if busybox [ -z "${ARG}" ] ; then
-			busybox cat /proc/swaps
-		else
-			busybox echo "Usage:"
-			busybox echo "    swapinfo"
-			busybox echo ""
-			busybox echo "Displays all of the swap information for a system"
-		fi
+		__swapinfo ${ARG}
 		;;
 	switchapk)
 		switchapk_files_url="${FILES_URL}/switchapk"
@@ -469,31 +505,10 @@ case ${CMD} in
 
 		;;
 	sysro) # done
-		if busybox [ -z "${ARG}" ] ; then
-			busybox echo -n "Remounting /system read-only ... "
-			__sysro
-			busybox echo "done"
-			busybox echo -n "Syncing ... "
-			sync
-			busybox echo "done"
-		else
-			busybox echo "Usage:"
-			busybox echo "    sysro"
-			busybox echo ""
-			busybox echo "Mounts the /system partition read-only"
-		fi
+		__sysro ${ARG}
 		;;
 	sysrw) # done
-		if busybox [ -z "${ARG}" ] ; then
-			busybox echo -n "Remounting /system read-write ... "
-			__sysrw
-			busybox echo "done"
-		else
-			busybox echo "Usage:"
-			busybox echo "    sysrw"
-			busybox echo ""
-			busybox echo "Mounts the /system partition read/write"
-		fi
+		__sysrw ${ARG}
 		;;
 	zipalign_apks) # done
 		if busybox [ -z "${ARG}" ] ; then
