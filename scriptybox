@@ -40,19 +40,19 @@ function __adblock () {
 	else
 		case $1 in
 			on)
-				__sysrw_helper 0
+				__sysrw > /dev/null
 				busybox echo -n "Enabling ad blocking ... "
 				busybox cat "${hostfile_local}" > /system/etc/hosts
 				busybox cat "${hostfile_adblock}" >> /system/etc/hosts
 				busybox echo "done"
-				__sysro_helper 1
+				__sysro > /dev/null
 			;;
 			off)
-				__sysrw_helper 0
+				__sysrw > /dev/null
 				busybox echo -n "Disabling ad blocking ... "
 				busybox cat "${hostfile_local}" > /system/etc/hosts
 				busybox echo "done"
-				__sysro_helper 1
+				__sysro > /dev/null
 			;;
 			*)
 				busybox echo "Did not understand [$@]"
@@ -81,20 +81,20 @@ function __camsounds () {
 	else
 		case $1 in
 			on)
-				__sysrw_helper 0
+				__sysrw > /dev/null
 				busybox echo -n "Enabling camera audio ... "
 				if busybox [ -e "${sound_clk}.bak" ] ; then busybox mv "${sound_clk}.bak" "${sound_clk}"; fi
 				if busybox [ -e "${sound_rec}.bak" ] ; then busybox mv "${sound_rec}.bak" "${sound_rec}"; fi
 				busybox echo "done"
-				__sysro_helper 1
+				__sysro > /dev/null
 				;;
 			off)
-				__sysrw_helper 0
+				__sysrw > /dev/null
 				busybox echo -n "Disabling camera audio ... "
 				if busybox [ -e "${sound_clk}" ] ; then busybox mv "${sound_clk}" "${sound_clk}.bak"; fi
 				if busybox [ -e "${sound_rec}" ] ; then busybox mv "${sound_rec}" "${sound_rec}.bak"; fi
 				busybox echo "done"
-				__sysro_helper 1
+				__sysro > /dev/null
 				;;
 			*)
 				busybox echo "Did not understand [$@]"
@@ -138,18 +138,18 @@ function __dalvikjit () {
 	else
 		case $1 in
 			on)
-				__sysrw_helper 0
+				__sysrw > /dev/null
 				busybox echo -n "Enabling JIT compiler in Dalvik ... "
 				busybox sed -r -i 's/(dalvik\.vm\.execution-mode=int:)fast/\1jit/' /system/build.prop
 				busybox echo "done"
-				__sysro_helper 1
+				__sysro > /dev/null
 				;;
 			off)
-				__sysrw_helper 0
+				__sysrw > /dev/null
 				busybox echo -n "Disabling JIT compiler in Dalvik ... "
 				busybox sed -r -i 's/(dalvik\.vm\.execution-mode=int:)jit/\1fast/' /system/build.prop
 				busybox echo "done"
-				__sysro_helper 1
+				__sysro > /dev/null
 				;;
 			*)
 				busybox echo "Did not understand [$@]"
@@ -402,7 +402,7 @@ function __rmapk_helper() {
 	if busybox [ ! -z "${app_name}" ] ; then
 		busybox echo "Removing application: ${app_name}"
 
-		__sysrw_helper 0
+		__sysrw > /dev/null
 
 		for apk in ${app_files}; do
 			busybox echo -n "  Removing file: ${apk} ... "
@@ -416,7 +416,7 @@ function __rmapk_helper() {
 			fi
 		done
 
-		__sysro_helper 5
+		__sysro > /dev/null
 	fi
 }
 
@@ -552,7 +552,7 @@ function __switchapk_helper () {
 				if busybox [ "$chksum_passed" -eq "1" ] ; then
 					busybox echo -n "  Switching apks ... ";
 
-					__sysrw_helper 0
+					__sysrw > /dev/null
 
 					if busybox [ -e "/system/app/${old_app_file}" ] ; then
 						busybox rm "/system/app/${old_app_file}"
@@ -566,7 +566,7 @@ function __switchapk_helper () {
 					busybox chown 0.0 "/system/app/${copy_to_file}"
 					busybox chmod 644 "/system/app/${copy_to_file}"
 
-					__sysro_helper 10
+					__sysro > /dev/null
 
 					busybox echo "done"
 				else
@@ -602,29 +602,11 @@ function __sysro () {
 		busybox echo ""
 		busybox echo "Mounts the /system partition read-only"
 	else
-		__sysro_helper
-	fi
-}
-
-function __sysro_helper () {
-###############################################################################
-# function name: __sysro_helper
-# parameters: $1 - ([0-9]*): amount of time to sleep (optional)
-# returns: void
-# description:
-#     remounts the /system partition read-only, sleeps for a given number of
-#     seconds if provided
-#
-	if busybox [ $# -gt 0 ] ; then
-		busybox sleep "$1s"
-		busybox mount -o remount,ro /system
-		sync
-	else
-		busybox echo -n "Remounting /system read-only ... "
-		busybox mount -o remount,ro /system
-		busybox echo "done"
 		busybox echo -n "Syncing ... "
 		sync
+		busybox echo "done"
+		busybox echo -n "Remounting /system read-only ... "
+		busybox mount -o remount,ro /system
 		busybox echo "done"
 	fi
 }
@@ -642,23 +624,6 @@ function __sysrw () {
 		busybox echo "    sysrw"
 		busybox echo ""
 		busybox echo "Mounts the /system partition read/write"
-	else
-		__sysrw_helper
-	fi
-}
-
-function __sysrw_helper () {
-###############################################################################
-# function name: __sysrw_helper
-# parameters: $1 - ([0-9]*): amount of time to sleep (optional)
-# returns: void
-# description:
-#     remounts the /system partition read-write, sleeps for a given number of
-#     seconds if provided
-#
-	if busybox [ $# -gt 0 ] ; then
-		busybox sleep "$1s"
-		busybox mount -o remount,rw /system
 	else
 		busybox echo -n "Remounting /system read-write ... "
 		busybox mount -o remount,rw /system
@@ -687,7 +652,7 @@ function __zipalign_apks () {
 		dat_apks=$(busybox find /data -name '*.apk')
 
 		# zipalign apks
-		__sysrw_helper 0
+		__sysrw > /dev/null
 
 		for apk in ${sys_apks} ${dat_apks}; do
 			apk_name="$(busybox basename ${apk})"
@@ -714,7 +679,7 @@ function __zipalign_apks () {
 			fi
 		done
 
-		__sysro_helper 10
+		__sysro > /dev/null
 	fi
 }
 
