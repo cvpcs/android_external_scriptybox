@@ -22,6 +22,13 @@ ARG=$@
 
 # declare our internal commands
 function __adblock () {
+###############################################################################
+# function name: __adblock
+# parameters: $1 - (on|off): determine if ad blocking turns on or off
+# returns: void
+# description:
+#     uses the phone's hostfile to block ads
+#
 	hostfile_local="${SCRIPT_ETC}/hosts.local"
 	hostfile_adblock="${SCRIPT_ETC}/hosts.adblock"
 
@@ -31,30 +38,38 @@ function __adblock () {
 		busybox echo ""
 		busybox echo "Turns ad blocking for the system on or off"
 	else
-		__sysrw 2>/dev/null
-
 		case $1 in
 			on)
+				__sysrw_helper 0
 				busybox echo -n "Enabling ad blocking ... "
 				busybox cat "${hostfile_local}" > /system/etc/hosts
 				busybox cat "${hostfile_adblock}" >> /system/etc/hosts
 				busybox echo "done"
+				__sysro_helper 1
 			;;
 			off)
+				__sysrw_helper 0
 				busybox echo -n "Disabling ad blocking ... "
 				busybox cat "${hostfile_local}" > /system/etc/hosts
 				busybox echo "done"
+				__sysro_helper 1
 			;;
 			*)
-				busybox echo "Did not understand [$1]"
+				busybox echo "Did not understand [$@]"
 			;;
 		esac
-
-		__sysro 2>/dev/null
 	fi
 }
 
 function __camsounds () {
+###############################################################################
+# function name: __camsounds
+# parameters: $1 - (on|off): determine if camera sound turns on or off
+# returns: void
+# description:
+#     rename camera sound files to disable the video record and camera click
+#     sounds
+#
 	sound_clk="/system/media/audio/ui/camera_click.ogg"
 	sound_rec="/system/media/audio/ui/VideoRecord.ogg"
 
@@ -64,31 +79,38 @@ function __camsounds () {
 		busybox echo ""
 		busybox echo "Turns the camera sounds (shutter and video cam) on or off"
 	else
-		__sysrw 2>/dev/null
-
 		case $1 in
 			on)
+				__sysrw_helper 0
 				busybox echo -n "Enabling camera audio ... "
 				if busybox [ -e "${sound_clk}.bak" ] ; then busybox mv "${sound_clk}.bak" "${sound_clk}"; fi
 				if busybox [ -e "${sound_rec}.bak" ] ; then busybox mv "${sound_rec}.bak" "${sound_rec}"; fi
 				busybox echo "done"
+				__sysro_helper 1
 				;;
 			off)
+				__sysrw_helper 0
 				busybox echo -n "Disabling camera audio ... "
 				if busybox [ -e "${sound_clk}" ] ; then busybox mv "${sound_clk}" "${sound_clk}.bak"; fi
 				if busybox [ -e "${sound_rec}" ] ; then busybox mv "${sound_rec}" "${sound_rec}.bak"; fi
 				busybox echo "done"
+				__sysro_helper 1
 				;;
 			*)
-				busybox echo "Did not understand [$1]"
+				busybox echo "Did not understand [$@]"
 				;;
 		esac
-
-		__sysro 2>/dev/null
 	fi
 }
 
 function __cpuinfo () {
+###############################################################################
+# function name: __cpuinfo
+# parameters: void
+# returns: void
+# description:
+#    displays the information about the processor
+#
 	if busybox [ $# -gt 0 ] ; then
 		busybox echo "Usage:"
 		busybox echo "    cpuinfo"
@@ -99,7 +121,58 @@ function __cpuinfo () {
 	fi
 }
 
+function __dalvikjit () {
+###############################################################################
+# function name: __dalvikjit
+# parameters: $1 - (on|off): determine if dalvik jit should be turned on or off
+# returns: void
+# description:
+#     enable or disable JIT compilation in the build.prop file
+#
+	if busybox [ $# == 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    dalvikjit [on|off]"
+		busybox echo ""
+		busybox echo "Enables/disables the JIT compiler for the dalvik"
+		busybox echo "virtual machine."
+	else
+		case $1 in
+			on)
+				__sysrw_helper 0
+				busybox echo -n "Enabling JIT compiler in Dalvik ... "
+				busybox sed -r -i 's/(dalvik\.vm\.execution-mode=int:)fast/\1jit/' /system/build.prop
+				busybox echo "done"
+				__sysro_helper 1
+				;;
+			off)
+				__sysrw_helper 0
+				busybox echo -n "Disabling JIT compiler in Dalvik ... "
+				busybox sed -r -i 's/(dalvik\.vm\.execution-mode=int:)jit/\1fast/' /system/build.prop
+				busybox echo "done"
+				__sysro_helper 1
+				;;
+			*)
+				busybox echo "Did not understand [$@]"
+				;;
+		esac
+
+		busybox echo ""
+		busybox echo "NOTE: REQUIRES A REBOOT TO ACTIVATE"
+		busybox echo ""
+		busybox echo "WARNING: THIS IS THE ECLAIR JIT COMPILER AND THEREFORE"
+		busybox echo "         IS STILL SOMEWHAT UNSTABLE!  USE AT YOUR OWN"
+		busybox echo "         RISK!"
+	fi
+}
+
 function __freemem () {
+###############################################################################
+# function name: __cpuinfo
+# parameters: $1 - (50mb|75mb|100mb|default): how much ram to keep free
+# returns: void
+# description:
+#     set up the memfree task killer to leave a certain amount of ram free
+#
 	if busybox [ $# == 0 ] ; then
 		busybox echo "Usage:"
 		busybox echo "    freemem [50mb|75mb|100mb|default]"
@@ -125,13 +198,20 @@ function __freemem () {
 				__freemem_helper 1536 2048 4096 5120 5632 6144
 				;;
 			*)
-				busybox echo "Did not understand [$1]"
+				busybox echo "Did not understand [$@]"
 				;;
 		esac
 	fi
 }
 
 function __freemem_helper () {
+###############################################################################
+# function name: __cpuinfo
+# parameters: $1,$2,$3,$4,$5,$6 - ([0-9]+): memory values to kill at
+# returns: void
+# description:
+#     helper function to push memkill values to the low memory killer
+#
 	if busybox [ $# == 6 ] ; then
 		busybox echo -n "Setting memkiller to keep $(busybox expr $6 \* 4 / 1024)mb of RAM free ... "
 		busybox echo "$1,$2,$3,$4,$5,$6" > /sys/module/lowmemorykiller/parameters/minfree
@@ -142,6 +222,13 @@ function __freemem_helper () {
 }
 
 function __halt () {
+###############################################################################
+# function name: __halt
+# parameters: void
+# returns: void
+# description:
+#     shuts down the phone to a power-off state (no reboot)
+#
 	if busybox [ $# -gt 0 ] ; then
 		busybox echo "Usage:"
 		busybox echo "    halt"
@@ -154,6 +241,13 @@ function __halt () {
 }
 
 function __meminfo () {
+###############################################################################
+# function name: __meminfo
+# parameters: void
+# returns: void
+# description:
+#     prints out info about the memory on the system
+#
 	if busybox [ $# -gt 0 ] ; then
 		busybox echo "Usage:"
 		busybox echo "    meminfo"
@@ -164,7 +258,176 @@ function __meminfo () {
 	fi
 }
 
+function __rmapk () {
+###############################################################################
+# function name: __rmapk
+# parameters: $1 - {name}: name of the apk to remove
+# returns: void
+# description:
+#     removes an apk from the system app folder
+#
+	if busybox [ $# == 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
+		busybox echo "            deskclock|devtools|email|genie|lwps|"
+		busybox echo "            mms|mp3|music|qoffice|spare]" # dock, im
+		busybox echo ""
+		busybox echo "Removes applications that may be unwanted on some"
+		busybox echo "systems.  The Applications are:"
+		busybox echo "     alarm - Alarm Clock"
+		busybox echo "     browser - Stock browser"
+		busybox echo "     calc - Stock calculator"
+		busybox echo "     carhome - Stock car home"
+		busybox echo "     corpcal - Corporate Calendar"
+		busybox echo "     deskclock - Desk Clock"
+		busybox echo "     devtools - Development Tools"
+		#busybox echo "     dock - Dock"
+		busybox echo "     email - Stock email"
+		busybox echo "     genie - News and Weather"
+		#busybox echo "     im - Stock IM"
+		busybox echo "     lwps - Live Wallpapers"
+		busybox echo "     mms - Stock MMS"
+		busybox echo "     mp3 - Amazon MP3"
+		busybox echo "     music - Music"
+		busybox echo "     qoffice - QuickOffice"
+		busybox echo "     spare - Spare Parts"
+	else
+		case $1 in
+			alarm)
+				__rmapk_helper \
+					"Alarm Clock" \
+					"/system/app/AlarmClock.apk"
+				;;
+			browser)
+				__rmapk_helper \
+					"Browser" \
+					"/system/app/Browser.apk"
+				;;
+			calc)
+				__rmapk_helper \
+					"Calculator" \
+					"/system/app/Calculator.apk"
+				;;
+			carhome)
+				__rmapk_helper \
+					"Car Home" \
+					"/system/app/CarDock.apk"
+				;;
+			corpcal)
+				__rmapk_helper \
+					"Corporate Calendar" \
+					"/system/app/CorpCal.apk"
+				;;
+			deskclock)
+				__rmapk_helper \
+					"Desk Clock" \
+					"/system/app/DeskClock.apk"
+				;;
+			devtools)
+				__rmapk_helper \
+					"Dev Tools" \
+					"/system/app/Development.apk"
+				;;
+			#dock)
+			#	__rmapk_helper \
+			#		"Dock" \
+			#		"/system/app/Dock.apk"
+			#	;;
+			email)
+				__rmapk_helper \
+					"Email" \
+					"/system/app/Email.apk"
+				;;
+			genie)
+				__rmapk_helper \
+					"News and Weather" \
+					"/system/app/GenieWidget.apk"
+				;;
+			#im)
+			#	__rmapk_helper \
+			#		"IM" \
+			#		"/system/app/IM.apk"
+			#	;;
+			lwps)
+				__rmapk_helper \
+					"Live Wallpapers" \
+					"/system/app/LiveWallpapers.apk" \
+					"/system/app/MagicSmokeWallpapers.apk" \
+					"/system/app/VisualizationWallpapers.apk"
+				;;
+			mms)
+				__rmapk_helper \
+					"MMS" \
+					"/system/app/Mms.apk"
+				;;
+			mp3)
+				__rmapk_helper \
+					"Amazon MP3" \
+					"/system/app/com.amazom.mp3.apk"
+				;;
+			music)
+				__rmapk_helper \
+					"Music" \
+					"/system/app/Music.apk"
+				;;
+			qoffice)
+				__rmapk_helper \
+					"QuickOffice" \
+					"/system/app/QuickOffice.apk"
+				;;
+			spare)
+				__rmapk_helper \
+					"Spare Parts" \
+					"/system/app/SpareParts.apk"
+				;;
+			*)
+				busybox echo "Did not understand [$@]"
+				;;
+		esac
+	fi
+}
+
+function __rmapk_helper() {
+###############################################################################
+# function name: __rmapk_helper
+# parameters: $1 - {name}: name of the app being removed (used for display)
+#             $2[,..] - {file}: files to be removed
+# returns: void
+# description:
+#     helper function that performs the removal of the specified app
+#
+	app_name=$1; shift 1
+	app_files=$@
+
+	if busybox [ ! -z "${app_name}" ] ; then
+		busybox echo "Removing application: ${app_name}"
+
+		__sysrw_helper 0
+
+		for apk in ${app_files}; do
+			busybox echo -n "  Removing file: ${apk} ... "
+
+			if busybox [ -e "${apk}" ] ; then
+				# i am basenaming this to make sure nothing bad happens
+				busybox rm "/system/app/$(busybox basename ${apk})"
+				busybox echo "done"
+			else
+				busybox echo "already removed"
+			fi
+		done
+
+		__sysro_helper 5
+	fi
+}
+
 function __swapinfo () {
+###############################################################################
+# function name: __swapinfo
+# parameters: void
+# returns: void
+# description:
+#     displays info about any swap space on the device
+#
 	if busybox [ $# -gt 0 ] ; then
 		busybox echo "Usage:"
 		busybox echo "    swapinfo"
@@ -175,19 +438,190 @@ function __swapinfo () {
 	fi
 }
 
+function __switchapk () {
+###############################################################################
+# function name: __switchapk
+# parameters: $1 - {name}: name of the apk to switch
+# returns: void
+# description:
+#     downloads and swaps apks from the sapphire host server
+#
+	switchapk_files_url="${FILES_URL}/switchapk"
+
+	if busybox [ $# != 2 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    switchapk [clock [2.0|2.1]| music [milestone|2.1]]"
+		busybox echo ""
+		busybox echo "Switches default applications for the following:"
+		busybox echo "    clock [2.0|2.1] - either the 2.0 or 2.1 clock app"
+		busybox echo "    music [mileston|2.1] - either the milestone or 2.1 music app"
+	else
+		case $1 in
+			clock)
+				case $2 in
+					2.0)
+						__switchapk_helper \
+							"2.1 Desk Clock" "DeskClock.apk" \
+							"2.0 Alarm Clock" "AlarmClock.apk" \
+							"AlarmClock.apk"
+						;;
+					2.1)
+						__switchapk_helper \
+							"2.0 Alarm Clock" "AlarmClock.apk" \
+							"2.1 Desk Clock" "DeskClock.apk" \
+							"DeskClock.apk"
+						;;
+					*)
+						busybox echo "Did not understand [$@]"
+						;;
+				esac
+				;;
+			music)
+				case $2 in
+					milestone)
+						__switchapk_helper \
+							"2.1 Music" "Music.apk" \
+							"Milestone Music" "MilestoneMusic.apk" \
+							"Music.apk"
+						;;
+					2.1)
+						__switchapk_helper \
+							"Milestone Music" "MilestoneMusic.apk" \
+							"2.1 Music" "Music.apk" \
+							"Music.apk"
+						;;
+					*)
+						busybox echo "Did not understand [$@]"
+						;;
+				esac
+				;;
+			*)
+				busybox echo "Did not understand [$@]"
+				;;
+		esac
+	fi
+}
+
+function __switchapk_helper () {
+###############################################################################
+# function name: __switchapk_helper
+# parameters: $1 - {old_app_name}: name of the apk we are replacing
+#             $2 - {old_app_file}: file we are replacing
+#             $3 - {new_app_name}: name of the new apk
+#             $4 - {new_app_file}: name of the new file
+#             $5 - {copy_to_file}: file name to copy to
+# returns: 0: success
+#          1: failure
+# description:
+#     downloads and swaps apks from the sapphire host server
+#
+	if busybox [ $# == 5 ] ; then
+		old_app_name="$1"
+		old_app_file="$2"
+		new_app_name="$3"
+		new_app_file="$4"
+		copy_to_file="$5"
+
+		busybox echo "Replacing ${old_app_name} with ${new_app_name} ..."
+
+		busybox echo "  Downloading required files:"
+		busybox echo -n "    ${new_app_file} ... "
+		busybox wget -q -O "/cache/${new_app_file}" "${switchapk_files_url}/${new_app_file}"
+		if busybox [ -e "/cache/${new_app_file}" ] ; then
+			busybox echo "done"
+
+			busybox echo -n "    ${new_app_file}.chksum ... "
+			busybox wget -q -O "/cache/${new_app_file}.chksum" "${switchapk_files_url}/${new_app_file}.chksum"
+			if busybox [ -e "/cache/${new_app_file}.chksum" ] ; then
+				busybox echo "done"
+
+				busybox echo "  Verifying download:"
+
+				chksum_passed="1"
+
+				for i in md5 sha1 sha256 sha512; do
+					busybox echo -n "    Verifying ${i} checksum ... "
+					if busybox echo "$(busybox grep "${i}" "/cache/${new_app_file}.chksum" | busybox awk '{print $2 "  " $3}')" | busybox "${i}sum" -c -s ; then
+						busybox echo "pass"
+					else
+						busybox echo "FAIL"
+						chksum_passed="0"
+					fi
+				done
+
+				if busybox [ "$chksum_passed" -eq "1" ] ; then
+					busybox echo -n "  Switching apks ... ";
+
+					__sysrw_helper 0
+
+					if busybox [ -e "/system/app/${old_app_file}" ] ; then
+						busybox rm "/system/app/${old_app_file}"
+					fi
+
+					if busybox [ -e "/system/app/${copy_to_file}" ] ; then
+						busybox rm "/system/app/${copy_to_file}"
+					fi
+
+					busybox cp "/cache/${new_app_file}" "/system/app/${copy_to_file}"
+					busybox chown 0.0 "/system/app/${copy_to_file}"
+					busybox chmod 644 "/system/app/${copy_to_file}"
+
+					__sysro_helper 10
+
+					busybox echo "done"
+				else
+					busybox echo "  There was an error verifying your downloads"
+					busybox echo "  Switch ABORTED"
+				fi
+
+				busybox echo -n "  Cleaning up ... "
+				busybox rm "/cache/${new_app_file}"
+				busybox rm "/cache/${new_app_file}.chksum"
+				busybox echo "done"
+			else
+				busybox echo "FAILED"
+			fi
+		else
+			busybox echo "FAILED"
+		fi
+	fi
+
+}
+
 function __sysro () {
+###############################################################################
+# function name: __sysro
+# parameters: void
+# returns: void
+# description:
+#     remounts the /system partition read-only
+#
 	if busybox [ $# -gt 0 ] ; then
 		busybox echo "Usage:"
 		busybox echo "    sysro"
 		busybox echo ""
 		busybox echo "Mounts the /system partition read-only"
 	else
-		busybox echo -n "Remounting /system read-only ... "
+		__sysro_helper
+	fi
+}
 
-		# sleep for 5 seconds to guarantee the system is done
-		busybox sleep 5s
+function __sysro_helper () {
+###############################################################################
+# function name: __sysro_helper
+# parameters: $1 - ([0-9]*): amount of time to sleep (optional)
+# returns: void
+# description:
+#     remounts the /system partition read-only, sleeps for a given number of
+#     seconds if provided
+#
+	if busybox [ $# -gt 0 ] ; then
+		busybox sleep "$1s"
 		busybox mount -o remount,ro /system
-
+		sync
+	else
+		busybox echo -n "Remounting /system read-only ... "
+		busybox mount -o remount,ro /system
 		busybox echo "done"
 		busybox echo -n "Syncing ... "
 		sync
@@ -196,19 +630,91 @@ function __sysro () {
 }
 
 function __sysrw () {
+###############################################################################
+# function name: __sysrw
+# parameters: void
+# returns: void
+# description:
+#     remounts the /system partition read-write
+#
 	if busybox [ $# -gt 0 ] ; then
 		busybox echo "Usage:"
 		busybox echo "    sysrw"
 		busybox echo ""
 		busybox echo "Mounts the /system partition read/write"
 	else
-		busybox echo -n "Remounting /system read-write ... "
+		__sysrw_helper
+	fi
+}
 
-		# sleep in case the device is busy
-		busybox sleep 5s
+function __sysrw_helper () {
+###############################################################################
+# function name: __sysrw_helper
+# parameters: $1 - ([0-9]*): amount of time to sleep (optional)
+# returns: void
+# description:
+#     remounts the /system partition read-write, sleeps for a given number of
+#     seconds if provided
+#
+	if busybox [ $# -gt 0 ] ; then
+		busybox sleep "$1s"
 		busybox mount -o remount,rw /system
-
+	else
+		busybox echo -n "Remounting /system read-write ... "
+		busybox mount -o remount,rw /system
 		busybox echo "done"
+	fi
+}
+
+function __zipalign_apks () {
+###############################################################################
+# function name: __zipalign_apks
+# parameters: void
+# returns: void
+# description:
+#     cycles through all of the apks on your system and zipaligns them if they
+#     are not already
+#
+	if busybox [ $# -gt 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    zipalign_apks"
+		busybox echo ""
+		busybox echo "Automagickally zipaligns all of the APK files found on your system"
+		busybox echo "NOTE: THIS WILL ZIPALIGN ANY APK UNDER /system OR /data"
+	else
+		# find our apks
+		sys_apks=$(busybox find /system -name '*.apk')
+		dat_apks=$(busybox find /data -name '*.apk')
+
+		# zipalign apks
+		__sysrw_helper 0
+
+		for apk in ${sys_apks} ${dat_apks}; do
+			apk_name="$(busybox basename ${apk})"
+			apk_cache="/cache/${apk_name}"
+
+			# check if we are already zipaligned
+			if ! zipalign -c 4 ${apk} ; then
+				busybox echo -n "${apk} - ZipAligning ... "
+
+				# nope, time to zipalign
+				zipalign -f 4 "${apk}" "${apk_cache}"
+
+				# check if file exists
+				if busybox [ -e "${apk_cache}" ] ; then
+					busybox cp -f "${apk_cache}" "${apk}"
+					busybox rm "${apk_cache}"
+
+					busybox echo "done";
+				else
+					busybox echo "ERROR";
+				fi
+			else
+				busybox echo "${apk} - Already ZipAligned. Skipping"
+			fi
+		done
+
+		__sysro_helper 10
 	fi
 }
 
@@ -233,36 +739,7 @@ case ${CMD} in
 		__cpuinfo ${ARG}
 		;;
 	dalvikjit) # done
-		__sysrw
-
-		case ${ARG} in
-			on)
-				busybox echo -n "Enabling JIT compiler in Dalvik ... "
-				busybox sed -r -i 's/(dalvik\.vm\.execution-mode=int:)fast/\1jit/' /system/build.prop
-				busybox echo "done"
-				;;
-			off)
-				busybox echo -n "Disabling JIT compiler in Dalvik ... "
-				busybox sed -r -i 's/(dalvik\.vm\.execution-mode=int:)jit/\1fast/' /system/build.prop
-				busybox echo "done"
-				;;
-			*)
-				busybox echo "Usage:"
-				busybox echo "    dalvikjit [on|off]"
-				busybox echo ""
-				busybox echo "Enables/disables the JIT compiler for the dalvik"
-				busybox echo "virtual machine."
-				;;
-		esac
-
-		busybox echo ""
-		busybox echo "NOTE: REQUIRES A REBOOT TO ACTIVATE"
-		busybox echo ""
-		busybox echo "WARNING: THIS IS THE ECLAIR JIT COMPILER AND THEREFORE"
-		busybox echo "         IS STILL SOMEWHAT UNSTABLE!  USE AT YOUR OWN"
-		busybox echo "         RISK!"
-
-		__sysro
+		__dalvikjit ${ARG}
 		;;
 	freemem) # done
 		__freemem ${ARG}
@@ -274,236 +751,13 @@ case ${CMD} in
 		__meminfo ${ARG}
 		;;
 	rmapk) # done
-		app_name=""
-		app_files=""
-
-		case ${ARG} in
-			alarm)
-				app_name="Alarm Clock"
-				app_files="/system/app/AlarmClock.apk"
-				;;
-			browser)
-				app_name="Browser"
-				app_files="/system/app/Browser.apk"
-				;;
-			calc)
-				app_name="Calculator"
-				app_files="/system/app/Calculator.apk"
-				;;
-			carhome)
-				app_name="Car Home"
-				app_files="/system/app/CarDock.apk"
-				;;
-			corpcal)
-				app_name="Corporate Calendar"
-				app_files="/system/app/CorpCal.apk"
-				;;
-			deskclock)
-				app_name="Desk Clock"
-				app_files="/system/app/DeskClock.apk"
-				;;
-			devtools)
-				app_name="Dev Tools"
-				app_files="/system/app/Development.apk"
-				;;
-			#dock)
-			#	app_name="Dock"
-			#	app_files="/system/app/Dock.apk"
-			#	;;
-			email)
-				app_name="Email"
-				app_files="/system/app/Email.apk"
-				;;
-			genie)
-				app_name="News and Weather"
-				app_files="/system/app/GenieWidget.apk"
-				;;
-			#im)
-			#	app_name="IM"
-			#	app_files="/system/app/IM.apk"
-			#	;;
-			lwps)
-				app_name="Live Wallpapers"
-				app_files="/system/app/LiveWallpapers.apk /system/app/MagicSmokeWallpapers.apk /system/app/VisualizationWallpapers.apk"
-				;;
-			mms)
-				app_name="MMS"
-				app_files="/system/app/Mms.apk"
-				;;
-			mp3)
-				app_name="Amazon MP3"
-				app_files="/system/app/com.amazom.mp3.apk"
-				;;
-			music)
-				app_name="Music"
-				app_files="/system/app/Music.apk"
-				;;
-			qoffice)
-				app_name="QuickOffice"
-				app_files="/system/app/QuickOffice.apk"
-				;;
-			spare)
-				app_name="Spare Parts"
-				app_files="/system/app/SpareParts.apk"
-				;;
-			*)
-				busybox echo "Usage:"
-				busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
-				busybox echo "            deskclock|devtools|email|genie|lwps|"
-				busybox echo "            mms|mp3|music|qoffice|spare]" # dock, im
-				busybox echo ""
-				busybox echo "Removes applications that may be unwanted on some"
-				busybox echo "systems.  The Applications are:"
-				busybox echo "     alarm - Alarm Clock"
-				busybox echo "     browser - Stock browser"
-				busybox echo "     calc - Stock calculator"
-				busybox echo "     carhome - Stock car home"
-				busybox echo "     corpcal - Corporate Calendar"
-				busybox echo "     deskclock - Desk Clock"
-				busybox echo "     devtools - Development Tools"
-				#busybox echo "     dock - Dock"
-				busybox echo "     email - Stock email"
-				busybox echo "     genie - News and Weather"
-				#busybox echo "     im - Stock IM"
-				busybox echo "     lwps - Live Wallpapers"
-				busybox echo "     mms - Stock MMS"
-				busybox echo "     mp3 - Amazon MP3"
-				busybox echo "     music - Music"
-				busybox echo "     qoffice - QuickOffice"
-				busybox echo "     spare - Spare Parts"
-				;;
-		esac
-
-		if busybox [ ! -z "${app_name}" ] ; then
-			busybox echo "Removing application: ${app_name}"
-
-			__sysrw
-
-			for apk in ${app_files}; do
-				busybox echo -n "  Removing file: ${apk} ... "
-
-				if busybox [ -e "${apk}" ] ; then
-					# i am basenaming this to make sure nothing bad happens
-					busybox rm "/system/app/$(busybox basename ${apk})"
-					busybox echo "done"
-				else
-					busybox echo "already removed"
-				fi
-			done
-
-			__sysro
-		fi
+		__rmapk ${ARG}
 		;;
 	swapinfo) # done
 		__swapinfo ${ARG}
 		;;
 	switchapk)
-		switchapk_files_url="${FILES_URL}/switchapk"
-
-		old_app_name=""
-		old_app_file=""
-		new_app_name=""
-		new_app_file=""
-
-		# find which app we're switching
-
-		case ${ARG} in
-			clock)
-				if busybox [ -e /system/app/DeskClock.apk ] ; then
-					old_app_name="2.1 Desk Clock"
-					old_app_file="DeskClock.apk"
-					new_app_name="2.0 Alarm Clock"
-					new_app_file="AlarmClock.apk"
-				else
-					old_app_name="2.0 Alarm Clock"
-					old_app_file="AlarmClock.apk"
-					new_app_name="2.1 Desk Clock"
-					new_app_file="DeskClock.apk"
-				fi
-				;;
-			music)
-				if busybox [ -e /system/app/Music.apk ] ; then
-					old_app_name="2.1 Music"
-					old_app_file="Music.apk"
-					new_app_name="Milestone Music"
-					new_app_file="MilestoneMusic.apk"
-				else
-					old_app_name="Milestone Music"
-					old_app_file="MilestoneMusic.apk"
-					new_app_name="2.1 Music"
-					new_app_file="Music.apk"
-				fi
-				;;
-			*)
-				busybox echo "Usage:"
-				busybox echo "    switchapk [clock|music]"
-				busybox echo ""
-				busybox echo "Switches default applications for the following:"
-				busybox echo "    clock - 2.1 and 2.0 clocks"
-				busybox echo "    music - 2.1 and milestone music"
-				;;
-		esac
-
-		if busybox [ ! -z "${new_app_name}" ] ; then
-			busybox echo "Replacing ${old_app_name} with ${new_app_name} ..."
-
-			busybox echo "  Downloading required files:"
-			busybox echo -n "    ${new_app_file} ... "
-			busybox wget -q -O "/cache/${new_app_file}" "${switchapk_files_url}/${new_app_file}"
-			if busybox [ -e "/cache/${new_app_file}" ] ; then
-				busybox echo "done"
-
-				busybox echo -n "    ${new_app_file}.chksum ... "
-				busybox wget -q -O "/cache/${new_app_file}.chksum" "${switchapk_files_url}/${new_app_file}.chksum"
-				if busybox [ -e "/cache/${new_app_file}.chksum" ] ; then
-					busybox echo "done"
-
-					busybox echo "  Verifying download:"
-
-					chksum_passed="1"
-
-					for i in md5 sha1 sha256 sha512; do
-						busybox echo -n "    Verifying ${i} checksum ... "
-						if busybox echo "$(busybox grep "${i}" "/cache/${new_app_file}.chksum" | busybox awk '{print $2 "  " $3}')" | busybox "${i}sum" -c -s ; then
-							busybox echo "pass"
-						else
-							busybox echo "FAIL"
-							chksum_passed="0"
-						fi
-					done
-
-					if busybox [ "$chksum_passed" -eq "1" ] ; then
-						busybox echo -n "  Switching apks ... ";
-						__sysrw
-
-
-						if busybox [ -e "/system/app/${old_app_file}" ] ; then
-							busybox rm "/system/app/${old_app_file}"
-						fi
-
-						busybox cp "/cache/${new_app_file}" "/system/app/${new_app_file}"
-						busybox chown 0.0 "/system/app/${new_app_file}"
-						busybox chmod 644 "/system/app/${new_app_file}"
-
-						__sysro
-						busybox echo "done"
-					else
-						busybox echo "  There was an error verifying your downloads"
-						busybox echo "  Switch ABORTED"
-					fi
-
-					busybox echo -n "  Cleaning up ... "
-					busybox rm "/cache/${new_app_file}"
-					busybox rm "/cache/${new_app_file}.chksum"
-					busybox echo "done"
-				else
-					busybox echo "FAILED"
-				fi
-			else
-				busybox echo "FAILED"
-			fi
-		fi
-
+		__switchapk ${ARG}
 		;;
 	sysro) # done
 		__sysro ${ARG}
@@ -512,45 +766,7 @@ case ${CMD} in
 		__sysrw ${ARG}
 		;;
 	zipalign_apks) # done
-		if busybox [ -z "${ARG}" ] ; then
-			# find our apks
-			sys_apks=$(busybox find /system -name '*.apk')
-			dat_apks=$(busybox find /data -name '*.apk')
-
-			# zipalign apks
-			__sysrw
-			for apk in ${sys_apks} ${dat_apks}; do
-				apk_name="$(busybox basename ${apk})"
-				apk_cache="/cache/${apk_name}"
-
-				# check if we are already zipaligned
-				if ! zipalign -c 4 ${apk} ; then
-					busybox echo -n "${apk} - ZipAligning ... "
-
-					# nope, time to zipalign
-					zipalign -f 4 "${apk}" "${apk_cache}"
-
-					# check if file exists
-					if busybox [ -e "${apk_cache}" ] ; then
-						busybox cp -f "${apk_cache}" "${apk}"
-						busybox rm "${apk_cache}"
-
-						busybox echo "done";
-					else
-						busybox echo "ERROR";
-					fi
-				else
-					busybox echo "${apk} - Already ZipAligned. Skipping"
-				fi
-			done
-			__sysro
-		else
-			busybox echo "Usage:"
-			busybox echo "    zipalign_apks"
-			busybox echo ""
-			busybox echo "Automagickally zipaligns all of the APK files found on your system"
-			busybox echo "NOTE: THIS WILL ZIPALIGN ANY APK UNDER /system OR /data"
-		fi
+		__zipalign_apks ${ARG}
 		;;
 	*)
 		busybox echo "Available commands:"
