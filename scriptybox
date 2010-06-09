@@ -602,10 +602,8 @@ function __sysro () {
 		busybox echo ""
 		busybox echo "Mounts the /system partition read-only"
 	else
-		busybox echo -n "Syncing ... "
-		sync
-		busybox echo "done"
 		busybox echo -n "Remounting /system read-only ... "
+		sync
 		busybox mount -o remount,ro /system
 		busybox echo "done"
 	fi
