@@ -5,6 +5,7 @@ xbin/dalvikjit
 xbin/freemem
 xbin/halt
 xbin/meminfo
+xbin/mtdinfo
 xbin/rmapk
 xbin/sysro
 xbin/sysrw

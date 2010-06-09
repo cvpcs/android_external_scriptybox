@@ -258,6 +258,24 @@ function __meminfo () {
 	fi
 }
 
+function __mtdinfo () {
+###############################################################################
+# function name: __mtdinfo
+# parameters: void
+# returns: void
+# description:
+#     prints out info about the memory partitions of the system
+#
+	if busybox [ $# -gt 0 ] ; then
+		busybox echo "Usage:"
+		busybox echo "    mtdinfo"
+		busybox echo ""
+		busybox echo "Displays all of the internal partitions for the system"
+	else
+		busybox cat /proc/mtd
+	fi
+}
+
 function __rmapk () {
 ###############################################################################
 # function name: __rmapk
@@ -741,6 +759,7 @@ case ${CMD} in
 		busybox echo "     freemem [50mb|75mb|100mb|default]"
 		busybox echo "     halt"
 		busybox echo "     meminfo"
+		busybox echo "     mtdinfo"
 		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
 		busybox echo "            deskclock|devtools|email|genie|lwps|"
 		busybox echo "            mms|mp3|music|qoffice|spare]" # dock, im
