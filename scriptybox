@@ -304,8 +304,8 @@ function __rmapk () {
 	if busybox [ $# == 0 ] ; then
 		busybox echo "Usage:"
 		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
-		busybox echo "            deskclock|devtools|email|genie|lwps|"
-		busybox echo "            mms|mp3|music|qoffice|spare]" # dock, im
+		busybox echo "            deskclock|devtools|email|genie|im|lwps|"
+		busybox echo "            mms|mp3|music|qoffice|spare]" # dock
 		busybox echo ""
 		busybox echo "Removes applications that may be unwanted on some"
 		busybox echo "systems.  The Applications are:"
@@ -319,7 +319,7 @@ function __rmapk () {
 		#busybox echo "     dock - Dock"
 		busybox echo "     email - Stock email"
 		busybox echo "     genie - News and Weather"
-		#busybox echo "     im - Stock IM"
+		busybox echo "     im - Stock IM"
 		busybox echo "     lwps - Live Wallpapers"
 		busybox echo "     mms - Stock MMS"
 		busybox echo "     mp3 - Amazon MP3"
@@ -378,11 +378,11 @@ function __rmapk () {
 					"News and Weather" \
 					"/system/app/GenieWidget.apk"
 				;;
-			#im)
-			#	__rmapk_helper \
-			#		"IM" \
-			#		"/system/app/IM.apk"
-			#	;;
+			im)
+				__rmapk_helper \
+					"IM" \
+					"/system/app/IM.apk"
+				;;
 			lwps)
 				__rmapk_helper \
 					"Live Wallpapers" \
@@ -748,6 +748,9 @@ case ${CMD} in
 	meminfo) # done
 		__meminfo ${ARG}
 		;;
+	mtdinfo) # done
+		__mtdinfo ${ARG}
+		;;
 	rmapk) # done
 		__rmapk ${ARG}
 		;;
@@ -778,8 +781,8 @@ case ${CMD} in
 		busybox echo "     meminfo"
 		busybox echo "     mtdinfo"
 		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
-		busybox echo "            deskclock|devtools|email|genie|lwps|"
-		busybox echo "            mms|mp3|music|qoffice|spare]" # dock, im
+		busybox echo "            deskclock|devtools|email|genie|im|lwps|"
+		busybox echo "            mms|mp3|music|qoffice|spare]" # dock
 		busybox echo "     swapinfo"
 		busybox echo "     switchapk [clock|music]"
 		busybox echo "     sysro"
