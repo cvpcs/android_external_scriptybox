@@ -50,10 +50,7 @@ function __adblock () {
 	hostfile_adblock="${SCRIPT_ETC}/hosts.adblock"
 
 	if busybox [ $# == 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    adblock [on|off]"
-		busybox echo ""
-		busybox echo "Turns ad blocking for the system on or off"
+		__adblock_help
 	else
 		case $1 in
 			on)
@@ -72,10 +69,17 @@ function __adblock () {
 				__sysro > /dev/null
 			;;
 			*)
-				busybox echo "Did not understand [$@]"
+				__adblock_help
 			;;
 		esac
 	fi
+}
+
+function __adblock_help () {
+	busybox echo "Usage:"
+	busybox echo "    adblock [on|off]"
+	busybox echo ""
+	busybox echo "Turns ad blocking for the system on or off"
 }
 
 function __camsounds () {
@@ -91,10 +95,7 @@ function __camsounds () {
 	sound_rec="/system/media/audio/ui/VideoRecord.ogg"
 
 	if busybox [ $# == 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    camsounds [on|off]"
-		busybox echo ""
-		busybox echo "Turns the camera sounds (shutter and video cam) on or off"
+		__camsounds_help
 	else
 		case $1 in
 			on)
@@ -114,10 +115,17 @@ function __camsounds () {
 				__sysro > /dev/null
 				;;
 			*)
-				busybox echo "Did not understand [$@]"
+				__camsounds_help
 				;;
 		esac
 	fi
+}
+
+function __camsounds_help () {
+	busybox echo "Usage:"
+	busybox echo "    camsounds [on|off]"
+	busybox echo ""
+	busybox echo "Turns the camera sounds (shutter and video cam) on or off"
 }
 
 function __cpuinfo () {
@@ -129,13 +137,17 @@ function __cpuinfo () {
 #    displays the information about the processor
 #
 	if busybox [ $# -gt 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    cpuinfo"
-		busybox echo ""
-		busybox echo "Displays all of the CPU information for the system"
+		__cpuinfo_help
 	else
 		busybox cat /proc/cpuinfo
 	fi
+}
+
+function __cpuinfo_help () {
+	busybox echo "Usage:"
+	busybox echo "    cpuinfo"
+	busybox echo ""
+	busybox echo "Displays all of the CPU information for the system"
 }
 
 function __dalvikjit () {
@@ -147,11 +159,7 @@ function __dalvikjit () {
 #     enable or disable JIT compilation in the build.prop file
 #
 	if busybox [ $# == 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    dalvikjit [on|off]"
-		busybox echo ""
-		busybox echo "Enables/disables the JIT compiler for the dalvik"
-		busybox echo "virtual machine."
+		__dalvikjit_help
 	else
 		case $1 in
 			on)
@@ -169,7 +177,7 @@ function __dalvikjit () {
 				__sysro > /dev/null
 				;;
 			*)
-				busybox echo "Did not understand [$@]"
+				__dalvikjit_help
 				;;
 		esac
 
@@ -182,6 +190,14 @@ function __dalvikjit () {
 	fi
 }
 
+function __dalvikjit_help () {
+	busybox echo "Usage:"
+	busybox echo "    dalvikjit [on|off]"
+	busybox echo ""
+	busybox echo "Enables/disables the JIT compiler for the dalvik"
+	busybox echo "virtual machine."
+}
+
 function __freemem () {
 ###############################################################################
 # function name: __cpuinfo
@@ -191,11 +207,7 @@ function __freemem () {
 #     set up the memfree task killer to leave a certain amount of ram free
 #
 	if busybox [ $# == 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    freemem [50mb|75mb|100mb|default]"
-		busybox echo ""
-		busybox echo "Configures the system to enusre that at least a given"
-		busybox echo "amount of RAM is always available"
+		__freemem_help
 	else
 		case $1 in
 			50mb)
@@ -215,10 +227,18 @@ function __freemem () {
 				__freemem_helper 1536 2048 4096 5120 5632 6144
 				;;
 			*)
-				busybox echo "Did not understand [$@]"
+				__freemem_help
 				;;
 		esac
 	fi
+}
+
+function __freemem_help () {
+	busybox echo "Usage:"
+	busybox echo "    freemem [50mb|75mb|100mb|default]"
+	busybox echo ""
+	busybox echo "Configures the system to enusre that at least a given"
+	busybox echo "amount of RAM is always available"
 }
 
 function __freemem_helper () {
@@ -247,14 +267,18 @@ function __halt () {
 #     shuts down the phone to a power-off state (no reboot)
 #
 	if busybox [ $# -gt 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    halt"
-		busybox echo ""
-		busybox echo "Powers off the phone"
+		__halt_help
 	else
 		busybox echo "Powering down ... "
 		reboot -p
 	fi
+}
+
+function __halt_help () {
+	busybox echo "Usage:"
+	busybox echo "    halt"
+	busybox echo ""
+	busybox echo "Powers off the phone"
 }
 
 function __meminfo () {
@@ -266,13 +290,17 @@ function __meminfo () {
 #     prints out info about the memory on the system
 #
 	if busybox [ $# -gt 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    meminfo"
-		busybox echo ""
-		busybox echo "Displays all of the memory information for the system"
+		__meminfo_help
 	else
 		busybox cat /proc/meminfo
 	fi
+}
+
+function __meminfo_help () {
+	busybox echo "Usage:"
+	busybox echo "    meminfo"
+	busybox echo ""
+	busybox echo "Displays all of the memory information for the system"
 }
 
 function __mtdinfo () {
@@ -284,13 +312,17 @@ function __mtdinfo () {
 #     prints out info about the memory partitions of the system
 #
 	if busybox [ $# -gt 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    mtdinfo"
-		busybox echo ""
-		busybox echo "Displays all of the internal partitions for the system"
+		__mtdinfo_help
 	else
 		busybox cat /proc/mtd
 	fi
+}
+
+function __mtdinfo_help () {
+	busybox echo "Usage:"
+	busybox echo "    mtdinfo"
+	busybox echo ""
+	busybox echo "Displays all of the internal partitions for the system"
 }
 
 function __rmapk () {
@@ -302,30 +334,7 @@ function __rmapk () {
 #     removes an apk from the system app folder
 #
 	if busybox [ $# == 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
-		busybox echo "            deskclock|devtools|email|genie|im|lwps|"
-		busybox echo "            mms|mp3|music|qoffice|spare]" # dock
-		busybox echo ""
-		busybox echo "Removes applications that may be unwanted on some"
-		busybox echo "systems.  The Applications are:"
-		busybox echo "     alarm - Alarm Clock"
-		busybox echo "     browser - Stock browser"
-		busybox echo "     calc - Stock calculator"
-		busybox echo "     carhome - Stock car home"
-		busybox echo "     corpcal - Corporate Calendar"
-		busybox echo "     deskclock - Desk Clock"
-		busybox echo "     devtools - Development Tools"
-		#busybox echo "     dock - Dock"
-		busybox echo "     email - Stock email"
-		busybox echo "     genie - News and Weather"
-		busybox echo "     im - Stock IM"
-		busybox echo "     lwps - Live Wallpapers"
-		busybox echo "     mms - Stock MMS"
-		busybox echo "     mp3 - Amazon MP3"
-		busybox echo "     music - Music"
-		busybox echo "     qoffice - QuickOffice"
-		busybox echo "     spare - Spare Parts"
+		__rmapk_help
 	else
 		case $1 in
 			alarm)
@@ -416,13 +425,40 @@ function __rmapk () {
 					"/system/app/SpareParts.apk"
 				;;
 			*)
-				busybox echo "Did not understand [$@]"
+				__rmapk_help
 				;;
 		esac
 	fi
 }
 
-function __rmapk_helper() {
+function __rmapk_help () {
+	busybox echo "Usage:"
+	busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
+	busybox echo "            deskclock|devtools|email|genie|im|lwps|"
+	busybox echo "            mms|mp3|music|qoffice|spare]" # dock
+	busybox echo ""
+	busybox echo "Removes applications that may be unwanted on some"
+	busybox echo "systems.  The Applications are:"
+	busybox echo "     alarm - Alarm Clock"
+	busybox echo "     browser - Stock browser"
+	busybox echo "     calc - Stock calculator"
+	busybox echo "     carhome - Stock car home"
+	busybox echo "     corpcal - Corporate Calendar"
+	busybox echo "     deskclock - Desk Clock"
+	busybox echo "     devtools - Development Tools"
+	#busybox echo "     dock - Dock"
+	busybox echo "     email - Stock email"
+	busybox echo "     genie - News and Weather"
+	busybox echo "     im - Stock IM"
+	busybox echo "     lwps - Live Wallpapers"
+	busybox echo "     mms - Stock MMS"
+	busybox echo "     mp3 - Amazon MP3"
+	busybox echo "     music - Music"
+	busybox echo "     qoffice - QuickOffice"
+	busybox echo "     spare - Spare Parts"
+}
+
+function __rmapk_helper () {
 ###############################################################################
 # function name: __rmapk_helper
 # parameters: $1 - {name}: name of the app being removed (used for display)
@@ -464,13 +500,17 @@ function __swapinfo () {
 #     displays info about any swap space on the device
 #
 	if busybox [ $# -gt 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    swapinfo"
-		busybox echo ""
-		busybox echo "Displays all of the swap information for a system"
+		__swapinfo_help
 	else
 		busybox cat /proc/swaps
 	fi
+}
+
+function __swapinfo_help () {
+	busybox echo "Usage:"
+	busybox echo "    swapinfo"
+	busybox echo ""
+	busybox echo "Displays all of the swap information for a system"
 }
 
 function __switchapk () {
@@ -484,12 +524,7 @@ function __switchapk () {
 	switchapk_files_url="${FILES_URL}/switchapk"
 
 	if busybox [ $# != 2 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    switchapk [clock [2.0|2.1]| music [milestone|2.1]]"
-		busybox echo ""
-		busybox echo "Switches default applications for the following:"
-		busybox echo "    clock [2.0|2.1] - either the 2.0 or 2.1 clock app"
-		busybox echo "    music [mileston|2.1] - either the milestone or 2.1 music app"
+		__switchapk_help
 	else
 		case $1 in
 			clock)
@@ -531,10 +566,19 @@ function __switchapk () {
 				esac
 				;;
 			*)
-				busybox echo "Did not understand [$@]"
+				__switchapk_help
 				;;
 		esac
 	fi
+}
+
+function __switchapk_help {
+	busybox echo "Usage:"
+	busybox echo "    switchapk [clock [2.0|2.1]| music [milestone|2.1]]"
+	busybox echo ""
+	busybox echo "Switches default applications for the following:"
+	busybox echo "    clock [2.0|2.1] - either the 2.0 or 2.1 clock app"
+	busybox echo "    music [mileston|2.1] - either the milestone or 2.1 music app"
 }
 
 function __switchapk_helper () {
@@ -632,16 +676,26 @@ function __sysro () {
 #     remounts the /system partition read-only
 #
 	if busybox [ $# -gt 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    sysro"
-		busybox echo ""
-		busybox echo "Mounts the /system partition read-only"
+		__sysro_help
 	else
 		busybox echo -n "Remounting /system read-only ... "
+
+		# i'm throwing the sleeps in there in hopes that it will fix
+		# the problems i'm having :S
+		sleep 2s
+
 		sync
 		busybox mount -o remount,ro /system
+
 		busybox echo "done"
 	fi
+}
+
+function __sysro_help () {
+	busybox echo "Usage:"
+	busybox echo "    sysro"
+	busybox echo ""
+	busybox echo "Mounts the /system partition read-only"
 }
 
 function __sysrw () {
@@ -653,15 +707,19 @@ function __sysrw () {
 #     remounts the /system partition read-write
 #
 	if busybox [ $# -gt 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    sysrw"
-		busybox echo ""
-		busybox echo "Mounts the /system partition read/write"
+		__sysrw_help
 	else
 		busybox echo -n "Remounting /system read-write ... "
 		busybox mount -o remount,rw /system
 		busybox echo "done"
 	fi
+}
+
+function __sysrw_help () {
+	busybox echo "Usage:"
+	busybox echo "    sysrw"
+	busybox echo ""
+	busybox echo "Mounts the /system partition read/write"
 }
 
 function __zipalign_apks () {
@@ -674,11 +732,7 @@ function __zipalign_apks () {
 #     are not already
 #
 	if busybox [ $# -gt 0 ] ; then
-		busybox echo "Usage:"
-		busybox echo "    zipalign_apks"
-		busybox echo ""
-		busybox echo "Automagickally zipaligns all of the APK files found on your system"
-		busybox echo "NOTE: THIS WILL ZIPALIGN ANY APK UNDER /system OR /data"
+		__zipalign_apks_help
 	else
 		# find our apks
 		sys_apks=$(busybox find /system -name '*.apk')
@@ -714,6 +768,64 @@ function __zipalign_apks () {
 
 		__sysro > /dev/null
 	fi
+}
+
+function __zipalign_apks_help () {
+	busybox echo "Usage:"
+	busybox echo "    zipalign_apks"
+	busybox echo ""
+	busybox echo "Automagickally zipaligns all of the APK files found on your system"
+	busybox echo "NOTE: THIS WILL ZIPALIGN ANY APK UNDER /system OR /data"
+}
+
+function __scriptybox_help () {
+	case $1 in
+		adblock)
+			__adblock_help
+			;;
+		camsounds)
+			__camsounds_help
+			;;
+		cpuinfo)
+			__cpuinfo_help
+			;;
+		dalvikjit)
+			__dalvikjit_help
+			;;
+		freemem)
+			__freemem_help
+			;;
+		halt)
+			__halt_help
+			;;
+		meminfo)
+			__meminfo_help
+			;;
+		mtdinfo)
+			__mtdinfo_help
+			;;
+		rmapk)
+			__rmapk_help
+			;;
+		swapinfo)
+			__swapinfo_help
+			;;
+		switchapk)
+			__switchapk_help
+			;;
+		sysro)
+			__sysro_help
+			;;
+		sysrw)
+			__sysrw_help
+			;;
+		zipalign_apks)
+			__zipalign_apks_help
+			;;
+		*)
+			busybox echo "Please type a valid command to view its help information"
+			;;
+	esac
 }
 
 # ensure we are getting an argument
@@ -769,6 +881,9 @@ case ${CMD} in
 	zipalign_apks) # done
 		__zipalign_apks ${ARG}
 		;;
+	help)
+		__scriptybox_help
+		;;
 	*)
 		busybox echo "Available commands:"
 		busybox echo ""
@@ -788,6 +903,9 @@ case ${CMD} in
 		busybox echo "     sysro"
 		busybox echo "     sysrw"
 		busybox echo "     zipalign_apks"
+		busybox echo ""
+		busybox echo "You can type \"scriptybox help [command]\" to see"
+		busybox echo "help related to that command"
 		;;
 esac
 
