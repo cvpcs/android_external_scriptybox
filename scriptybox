@@ -389,6 +389,11 @@ function __rmapk () {
 					"Spare Parts" \
 					"/system/app/SpareParts.apk"
 				;;
+			vvm)
+				__rmapk_helper \
+					"Visual VM" \
+					"/system/app/VVMStub.apk"
+				;;
 			*)
 				__rmapk_help
 				;;
@@ -421,6 +426,7 @@ function __rmapk_help () {
 	busybox echo "     music - Music"
 	busybox echo "     qoffice - QuickOffice"
 	busybox echo "     spare - Spare Parts"
+	busybox echo "     vvm - Visual VM"
 }
 
 function __rmapk_helper () {
@@ -859,7 +865,7 @@ case ${CMD} in
 		busybox echo "     mtdinfo"
 		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
 		busybox echo "            deskclock|devtools|email|genie|im|lwps|"
-		busybox echo "            mms|mp3|music|qoffice|spare]" # dock
+		busybox echo "            mms|mp3|music|qoffice|spare|vvm]" # dock
 		busybox echo "     swapinfo"
 		busybox echo "     switchapk [clock|music]"
 		busybox echo "     sysro"
