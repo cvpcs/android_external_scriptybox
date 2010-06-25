@@ -139,7 +139,11 @@ function __cpuinfo () {
 	if busybox [ $# -gt 0 ] ; then
 		__cpuinfo_help
 	else
-		busybox cat /proc/cpuinfo
+		if busybox [ -e /proc/cpuinfo ] ; then
+			busybox cat /proc/cpuinfo
+		else
+			busybox echo "Cpuinfo not supported by kernel"
+		fi
 	fi
 }
 
@@ -150,57 +154,9 @@ function __cpuinfo_help () {
 	busybox echo "Displays all of the CPU information for the system"
 }
 
-function __dalvikjit () {
-###############################################################################
-# function name: __dalvikjit
-# parameters: $1 - (on|off): determine if dalvik jit should be turned on or off
-# returns: void
-# description:
-#     enable or disable JIT compilation in the build.prop file
-#
-	if busybox [ $# == 0 ] ; then
-		__dalvikjit_help
-	else
-		case $1 in
-			on)
-				__sysrw > /dev/null
-				busybox echo -n "Enabling JIT compiler in Dalvik ... "
-				busybox sed -r -i 's/(dalvik\.vm\.execution-mode=int:)fast/\1jit/' /system/build.prop
-				busybox echo "done"
-				__sysro > /dev/null
-				;;
-			off)
-				__sysrw > /dev/null
-				busybox echo -n "Disabling JIT compiler in Dalvik ... "
-				busybox sed -r -i 's/(dalvik\.vm\.execution-mode=int:)jit/\1fast/' /system/build.prop
-				busybox echo "done"
-				__sysro > /dev/null
-				;;
-			*)
-				__dalvikjit_help
-				;;
-		esac
-
-		busybox echo ""
-		busybox echo "NOTE: REQUIRES A REBOOT TO ACTIVATE"
-		busybox echo ""
-		busybox echo "WARNING: THIS IS THE ECLAIR JIT COMPILER AND THEREFORE"
-		busybox echo "         IS STILL SOMEWHAT UNSTABLE!  USE AT YOUR OWN"
-		busybox echo "         RISK!"
-	fi
-}
-
-function __dalvikjit_help () {
-	busybox echo "Usage:"
-	busybox echo "    dalvikjit [on|off]"
-	busybox echo ""
-	busybox echo "Enables/disables the JIT compiler for the dalvik"
-	busybox echo "virtual machine."
-}
-
 function __freemem () {
 ###############################################################################
-# function name: __cpuinfo
+# function name: __freemem
 # parameters: $1 - (50mb|75mb|100mb|default): how much ram to keep free
 # returns: void
 # description:
@@ -243,7 +199,7 @@ function __freemem_help () {
 
 function __freemem_helper () {
 ###############################################################################
-# function name: __cpuinfo
+# function name: __freemem_helper
 # parameters: $1,$2,$3,$4,$5,$6 - ([0-9]+): memory values to kill at
 # returns: void
 # description:
@@ -292,7 +248,11 @@ function __meminfo () {
 	if busybox [ $# -gt 0 ] ; then
 		__meminfo_help
 	else
-		busybox cat /proc/meminfo
+		if busybox [ -e /proc/meminfo ] ; then
+			busybox cat /proc/meminfo
+		else
+			busybox echo "Meminfo not supported by kernel"
+		fi
 	fi
 }
 
@@ -314,7 +274,11 @@ function __mtdinfo () {
 	if busybox [ $# -gt 0 ] ; then
 		__mtdinfo_help
 	else
-		busybox cat /proc/mtd
+		if busybox [ -e /proc/mtd ] ; then
+			busybox cat /proc/mtd
+		else
+			busybox echo "Mtdinfo not supported by kernel"
+		fi
 	fi
 }
 
@@ -355,7 +319,8 @@ function __rmapk () {
 			carhome)
 				__rmapk_helper \
 					"Car Home" \
-					"/system/app/CarDock.apk"
+					"/system/app/CarHomeGoogle.apk" \
+					"/system/app/CarHomeLauncher.apk"
 				;;
 			corpcal)
 				__rmapk_helper \
@@ -407,7 +372,7 @@ function __rmapk () {
 			mp3)
 				__rmapk_helper \
 					"Amazon MP3" \
-					"/system/app/com.amazom.mp3.apk"
+					"/system/app/com.amazon.mp3.apk"
 				;;
 			music)
 				__rmapk_helper \
@@ -417,7 +382,7 @@ function __rmapk () {
 			qoffice)
 				__rmapk_helper \
 					"QuickOffice" \
-					"/system/app/QuickOffice.apk"
+					"/system/app/SholesQuickOffice.apk"
 				;;
 			spare)
 				__rmapk_helper \
@@ -502,7 +467,11 @@ function __swapinfo () {
 	if busybox [ $# -gt 0 ] ; then
 		__swapinfo_help
 	else
-		busybox cat /proc/swaps
+                if busybox [ -e /proc/swaps ] ; then
+			busybox cat /proc/swaps
+		else
+			busybox echo "Swapinfo not supported by kernel"
+		fi
 	fi
 }
 
@@ -529,16 +498,16 @@ function __switchapk () {
 		case $1 in
 			clock)
 				case $2 in
-					2.0)
+					alarm)
 						__switchapk_helper \
-							"2.1 Desk Clock" "DeskClock.apk" \
-							"2.0 Alarm Clock" "AlarmClock.apk" \
+							"2.2 Desk Clock" "DeskClock.apk" \
+							"2.2 Alarm Clock" "AlarmClock.apk" \
 							"AlarmClock.apk"
 						;;
-					2.1)
+					desk)
 						__switchapk_helper \
-							"2.0 Alarm Clock" "AlarmClock.apk" \
-							"2.1 Desk Clock" "DeskClock.apk" \
+							"2.2 Alarm Clock" "AlarmClock.apk" \
+							"2.2 Desk Clock" "DeskClock.apk" \
 							"DeskClock.apk"
 						;;
 					*)
@@ -550,14 +519,14 @@ function __switchapk () {
 				case $2 in
 					milestone)
 						__switchapk_helper \
-							"2.1 Music" "Music.apk" \
+							"2.2 Music" "Music.apk" \
 							"Milestone Music" "MilestoneMusic.apk" \
 							"Music.apk"
 						;;
-					2.1)
+					original)
 						__switchapk_helper \
 							"Milestone Music" "MilestoneMusic.apk" \
-							"2.1 Music" "Music.apk" \
+							"2.2 Music" "Music.apk" \
 							"Music.apk"
 						;;
 					*)
@@ -574,11 +543,11 @@ function __switchapk () {
 
 function __switchapk_help {
 	busybox echo "Usage:"
-	busybox echo "    switchapk [clock [2.0|2.1]| music [milestone|2.1]]"
+	busybox echo "    switchapk [clock [alarm|desk]| music [milestone|original]]"
 	busybox echo ""
 	busybox echo "Switches default applications for the following:"
-	busybox echo "    clock [2.0|2.1] - either the 2.0 or 2.1 clock app"
-	busybox echo "    music [mileston|2.1] - either the milestone or 2.1 music app"
+	busybox echo "    clock [alarm|desk] - either the AlarmClock or DeskClock app"
+	busybox echo "    music [mileston|original] - either the MilestoneMusic or Music app"
 }
 
 function __switchapk_helper () {
@@ -789,9 +758,6 @@ function __scriptybox_help () {
 		cpuinfo)
 			__cpuinfo_help
 			;;
-		dalvikjit)
-			__dalvikjit_help
-			;;
 		freemem)
 			__freemem_help
 			;;
@@ -848,9 +814,6 @@ case ${CMD} in
 	cpuinfo) # done
 		__cpuinfo ${ARG}
 		;;
-	dalvikjit) # done
-		__dalvikjit ${ARG}
-		;;
 	freemem) # done
 		__freemem ${ARG}
 		;;
@@ -890,7 +853,6 @@ case ${CMD} in
 		busybox echo "     adblock [on|off]"
 		busybox echo "     camsounds [on|off]"
 		busybox echo "     cpuinfo"
-		busybox echo "     dalvikjit [on|off]"
 		busybox echo "     freemem [50mb|75mb|100mb|default]"
 		busybox echo "     halt"
 		busybox echo "     meminfo"
