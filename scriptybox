@@ -322,6 +322,11 @@ function __rmapk () {
 					"/system/app/CarHomeGoogle.apk" \
 					"/system/app/CarHomeLauncher.apk"
 				;;
+			chrome)
+				__rmapk_helper \
+					"Chrome To Phone" \
+					"/system/app/ChromeToPhone.apk"
+				;;
 			corpcal)
 				__rmapk_helper \
 					"Corporate Calendar" \
@@ -389,6 +394,11 @@ function __rmapk () {
 					"Spare Parts" \
 					"/system/app/SpareParts.apk"
 				;;
+			tips)
+				__rmapk_helper \
+					"Tips" \
+					"/system/app/Protips.apk"
+				;;
 			vvm)
 				__rmapk_helper \
 					"Visual VM" \
@@ -403,9 +413,9 @@ function __rmapk () {
 
 function __rmapk_help () {
 	busybox echo "Usage:"
-	busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
+	busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|chrome|"
 	busybox echo "            deskclock|devtools|email|genie|im|lwps|"
-	busybox echo "            mms|mp3|music|qoffice|spare]" # dock
+	busybox echo "            mms|mp3|music|qoffice|spare|tips|vvm]" # dock
 	busybox echo ""
 	busybox echo "Removes applications that may be unwanted on some"
 	busybox echo "systems.  The Applications are:"
@@ -414,6 +424,7 @@ function __rmapk_help () {
 	busybox echo "     calc - Stock calculator"
 	busybox echo "     carhome - Stock car home"
 	busybox echo "     corpcal - Corporate Calendar"
+	busybox echo "     chrome - Chrome To Phone"
 	busybox echo "     deskclock - Desk Clock"
 	busybox echo "     devtools - Development Tools"
 	#busybox echo "     dock - Dock"
@@ -426,6 +437,7 @@ function __rmapk_help () {
 	busybox echo "     music - Music"
 	busybox echo "     qoffice - QuickOffice"
 	busybox echo "     spare - Spare Parts"
+	busybox echo "     tips - Tips"
 	busybox echo "     vvm - Visual VM"
 }
 
@@ -863,9 +875,9 @@ case ${CMD} in
 		busybox echo "     halt"
 		busybox echo "     meminfo"
 		busybox echo "     mtdinfo"
-		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
+		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|chrome|"
 		busybox echo "            deskclock|devtools|email|genie|im|lwps|"
-		busybox echo "            mms|mp3|music|qoffice|spare|vvm]" # dock
+		busybox echo "            mms|mp3|music|qoffice|spare|tips|vvm]" # dock
 		busybox echo "     swapinfo"
 		busybox echo "     switchapk [clock|music]"
 		busybox echo "     sysro"
