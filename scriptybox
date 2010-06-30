@@ -128,6 +128,99 @@ function __camsounds_help () {
 	busybox echo "Turns the camera sounds (shutter and video cam) on or off"
 }
 
+function __compcache () {
+###############################################################################
+# function name: __compcache
+# parameters: $1 - (on|off): determine if compcache turns on or off
+# returns: void
+# description:
+#     turns on compcache ramzswap module and enables it (or shuts of and
+#     disables it)
+#
+	if busybox [ $# == 0 ] ; then
+		__compcache_help
+	else
+                rzswap_mod=ramzswap
+                rzswap_size=20480
+                rzswap_file=/dev/block/ramzswap0
+                rzctrl=$(busybox which rzscontrol 2>/dev/null)
+
+		if busybox [ -z "${rzctrl}" ] ; then
+		        busybox echo "FATAL ERROR: Could not find rzscontrol applicaiton"
+		        return
+		fi
+
+		# sanity check 2: does our module exist?
+		if busybox [ -z "$(busybox find /system/lib/modules -name *${rzswap_mod}* 2>/dev/null)" ] ; then
+		        # no module, maybe the ram device just exists?
+
+		        if busybox [ ! -b "${rzswap_file}" ] ; then
+		                busybox echo "FATAL ERROR: System does not support compcache"
+		                return
+		        fi
+		fi
+
+		case $1 in
+			on)
+		               if busybox [ -z "$(busybox lsmod | busybox grep ${rzswap_mod})" ] ; then
+		                        busybox echo -n "Loading ramzswap module ... "
+
+		                        if ! busybox modprobe "${rzswap_mod}" "disksize_kb=${rzswap_size}" ; then
+		                                busybox echo "FAIL"
+		                                return
+		                        fi
+
+					busybox echo "done"
+		                fi
+
+		                if busybox [ -z "$(busybox grep ${rzswap_file} /proc/swaps)" ] ; then
+					busybox echo -n "Enabling swap ... "
+		                        busybox swapon "${rzswap_file}"
+					busybox echo "done"
+		                fi
+
+				busybox echo "Compcache has been enabled"
+				;;
+			off)
+        		        if busybox [ ! -z "$(busybox grep ${rzswap_file} /proc/swaps)" ] ; then
+		                        busybox echo -n "Disabling swap ... "
+		                        busybox swapoff "${rzswap_file}"
+					busybox echo "done"
+
+					busybox echo -n "Resetting ramzswap ... "
+		                        "${rzctrl}" "${rzswap_file}" --reset
+					busybox echo "done"
+		                fi
+
+		                if busybox [ ! -z "$(busybox lsmod | busybox grep ${rzswap_mod})" ] ; then
+		                        busybox echo -n "Unloading ramzswap module ... "
+		                        busybox modprobe -r "${rzswap_mod}"
+					busybox echo "done"
+		                fi
+
+				busybox echo "Compcache has been disabled"
+				;;
+			stats)
+				if busybox [ -b "${rzswap_file}" ] ; then
+					"${rzctrl}" "${rzswap_file}" --stats
+				else
+					busybox echo "Compcache does not appear to be enabled"
+				fi
+				;;
+			*)
+				__compcache_help
+				;;
+		esac
+	fi
+}
+
+function __compcache_help () {
+	busybox echo "Usage:"
+	busybox echo "    compcache [on|off]"
+	busybox echo ""
+	busybox echo "Turns compcache (in-RAM swap) on or off"
+}
+
 function __cpuinfo () {
 ###############################################################################
 # function name: __cpuinfo
@@ -773,6 +866,9 @@ function __scriptybox_help () {
 		camsounds)
 			__camsounds_help
 			;;
+                compcache)
+                        __compcache_help
+                        ;;
 		cpuinfo)
 			__cpuinfo_help
 			;;
@@ -829,6 +925,9 @@ case ${CMD} in
 	camsounds) # done
 		__camsounds ${ARG}
 		;;
+        compcache)
+                __compcache ${ARG}
+                ;;
 	cpuinfo) # done
 		__cpuinfo ${ARG}
 		;;
