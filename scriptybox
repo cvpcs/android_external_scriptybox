@@ -611,15 +611,15 @@ function __switchapk () {
 				case $2 in
 					alarm)
 						__switchapk_helper \
-							"2.2 Desk Clock" "DeskClock.apk" \
-							"2.2 Alarm Clock" "AlarmClock.apk" \
-							"AlarmClock.apk"
+							"Clock" "2.2 Alarm Clock" \
+							"AlarmClock.apk" "AlarmClock.apk" \
+							"DeskClock.apk"
 						;;
 					desk)
 						__switchapk_helper \
-							"2.2 Alarm Clock" "AlarmClock.apk" \
-							"2.2 Desk Clock" "DeskClock.apk" \
-							"DeskClock.apk"
+							"Clock" "2.2 Desk Clock" \
+							"DeskClock.apk" "DeskClock.apk" \
+							"AlarmClock.apk"
 						;;
 					*)
 						busybox echo "Did not understand [$@]"
@@ -628,16 +628,22 @@ function __switchapk () {
 				;;
 			music)
 				case $2 in
+					eliotstocker)
+						__switchapk_helper \
+							"Music" "Eliot Stocker Music Overhaul" \
+							"EliotStockerMusic.apk" "Music.apk" \
+							"Music.apk"
+						;;
 					milestone)
 						__switchapk_helper \
-							"2.2 Music" "Music.apk" \
-							"Milestone Music" "MilestoneMusic.apk" \
+							"Music" "Milestone Music" \
+							"MilestoneMusic.apk" "Music.apk" \
 							"Music.apk"
 						;;
 					original)
 						__switchapk_helper \
-							"Milestone Music" "MilestoneMusic.apk" \
-							"2.2 Music" "Music.apk" \
+							"Music" "2.2 Music" \
+							"Music.apk" "Music.apk" \
 							"Music.apk"
 						;;
 					*)
@@ -654,32 +660,33 @@ function __switchapk () {
 
 function __switchapk_help {
 	busybox echo "Usage:"
-	busybox echo "    switchapk [clock [alarm|desk]| music [milestone|original]]"
+	busybox echo "    switchapk [clock [alarm|desk]| music [eliotstocker|milestone|original]]"
 	busybox echo ""
 	busybox echo "Switches default applications for the following:"
 	busybox echo "    clock [alarm|desk] - either the AlarmClock or DeskClock app"
-	busybox echo "    music [mileston|original] - either the MilestoneMusic or Music app"
+	busybox echo "    music [eliotstocker|milestone|original] - either the Eliot Stocker,"
+	busybox echo "              Milestone or original 2.2 Music app"
 }
 
 function __switchapk_helper () {
 ###############################################################################
 # function name: __switchapk_helper
-# parameters: $1 - {old_app_name}: name of the apk we are replacing
-#             $2 - {old_app_file}: file we are replacing
-#             $3 - {new_app_name}: name of the new apk
-#             $4 - {new_app_file}: name of the new file
-#             $5 - {copy_to_file}: file name to copy to
+# parameters: $1 - {old_app_name}: name of the apk being replaced
+#             $2 - {new_app_name}: name of the new apk
+#             $3 - {new_app_file}: name of the new file
+#             $4 - {copy_to_file}: file name to copy to
+#             $@ - {delete_files}: files to delete (old files)
 # returns: 0: success
 #          1: failure
 # description:
 #     downloads and swaps apks from the sapphire host server
 #
-	if busybox [ $# == 5 ] ; then
+	if busybox [ $# -gt 4 ] ; then
 		old_app_name="$1"
-		old_app_file="$2"
-		new_app_name="$3"
-		new_app_file="$4"
-		copy_to_file="$5"
+		new_app_name="$2"
+		new_app_file="$3"
+		copy_to_file="$4"; shift 4
+		delete_files="$@"
 
 		busybox echo "Replacing ${old_app_name} with ${new_app_name} ..."
 
@@ -713,9 +720,11 @@ function __switchapk_helper () {
 
 					__sysrw > /dev/null
 
-					if busybox [ -e "/system/app/${old_app_file}" ] ; then
-						busybox rm "/system/app/${old_app_file}"
-					fi
+					for old_app_file in ${delete_files}; do
+						if busybox [ -e "/system/app/${old_app_file}" ] ; then
+							busybox rm "/system/app/${old_app_file}"
+						fi
+					done
 
 					if busybox [ -e "/system/app/${copy_to_file}" ] ; then
 						busybox rm "/system/app/${copy_to_file}"
