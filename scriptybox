@@ -216,7 +216,7 @@ function __compcache () {
 
 function __compcache_help () {
 	busybox echo "Usage:"
-	busybox echo "    compcache [on|off]"
+	busybox echo "    compcache [on|off|stats]"
 	busybox echo ""
 	busybox echo "Turns compcache (in-RAM swap) on or off"
 }
@@ -979,6 +979,7 @@ case ${CMD} in
 		busybox echo "     adblock [on|off]"
 		busybox echo "     camsounds [on|off]"
 		busybox echo "     cpuinfo"
+		busybox echo "     compcache [on|off|stats]"
 		busybox echo "     freemem [50mb|75mb|100mb|default]"
 		busybox echo "     halt"
 		busybox echo "     meminfo"
