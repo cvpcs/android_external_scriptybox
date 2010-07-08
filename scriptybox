@@ -640,7 +640,7 @@ function __switchapk () {
 							"MilestoneMusic.apk" "Music.apk" \
 							"Music.apk"
 						;;
-					original)
+					stock)
 						__switchapk_helper \
 							"Music" "2.2 Music" \
 							"Music.apk" "Music.apk" \
@@ -660,12 +660,12 @@ function __switchapk () {
 
 function __switchapk_help {
 	busybox echo "Usage:"
-	busybox echo "    switchapk [clock [alarm|desk]| music [eliotstocker|milestone|original]]"
+	busybox echo "    switchapk [clock [alarm|desk]| music [eliotstocker|milestone|stock]]"
 	busybox echo ""
 	busybox echo "Switches default applications for the following:"
 	busybox echo "    clock [alarm|desk] - either the AlarmClock or DeskClock app"
-	busybox echo "    music [eliotstocker|milestone|original] - either the Eliot Stocker,"
-	busybox echo "              Milestone or original 2.2 Music app"
+	busybox echo "    music [eliotstocker|milestone|stock] - either the Eliot Stocker,"
+	busybox echo "              Milestone or stock 2.2 Music app"
 }
 
 function __switchapk_helper () {
