@@ -487,6 +487,11 @@ function __rmapk () {
 					"Spare Parts" \
 					"/system/app/SpareParts.apk"
 				;;
+			speech)
+				__rmapk_helper \
+					"Speech Recorder" \
+					"/system/app/SpeechRecorder.apk"
+				;;
 			tips)
 				__rmapk_helper \
 					"Tips" \
@@ -508,7 +513,7 @@ function __rmapk_help () {
 	busybox echo "Usage:"
 	busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|chrome|"
 	busybox echo "            deskclock|devtools|email|genie|im|lwps|"
-	busybox echo "            mms|mp3|music|qoffice|spare|tips|vvm]" # dock
+	busybox echo "            mms|mp3|music|qoffice|spare|speech|tips|vvm]" # dock
 	busybox echo ""
 	busybox echo "Removes applications that may be unwanted on some"
 	busybox echo "systems.  The Applications are:"
@@ -530,6 +535,7 @@ function __rmapk_help () {
 	busybox echo "     music - Music"
 	busybox echo "     qoffice - QuickOffice"
 	busybox echo "     spare - Spare Parts"
+	busybox echo "     speech - Speech Recorder"
 	busybox echo "     tips - Tips"
 	busybox echo "     vvm - Visual VM"
 }
@@ -986,7 +992,7 @@ case ${CMD} in
 		busybox echo "     mtdinfo"
 		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|chrome|"
 		busybox echo "            deskclock|devtools|email|genie|im|lwps|"
-		busybox echo "            mms|mp3|music|qoffice|spare|tips|vvm]" # dock
+		busybox echo "            mms|mp3|music|qoffice|spare|speech|tips|vvm]" # dock
 		busybox echo "     swapinfo"
 		busybox echo "     switchapk [clock|music]"
 		busybox echo "     sysro"
