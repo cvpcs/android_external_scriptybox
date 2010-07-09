@@ -302,6 +302,10 @@ function __freemem_helper () {
 		busybox echo -n "Setting memkiller to keep $(busybox expr $6 \* 4 / 1024)mb of RAM free ... "
 		busybox echo "$1,$2,$3,$4,$5,$6" > /sys/module/lowmemorykiller/parameters/minfree
 		busybox echo "done"
+		busybox echo ""
+		busybox echo "WARNING: Increasing auto-task killing may have adverse effects"
+		busybox echo "         on the system.  If you experience unexpected issues,"
+		busybox echo "         try reducing the amount of memory kept free."
 	else
 		busybox echo "Unable to set memkiller ... "
 	fi
@@ -482,6 +486,11 @@ function __rmapk () {
 					"QuickOffice" \
 					"/system/app/SholesQuickOffice.apk"
 				;;
+			search)
+				__rmapk_helper \
+					"Google Search" \
+					"/system/app/GoogleQuickSearchBox.apk"
+				;;
 			spare)
 				__rmapk_helper \
 					"Spare Parts" \
@@ -513,7 +522,8 @@ function __rmapk_help () {
 	busybox echo "Usage:"
 	busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|chrome|"
 	busybox echo "            deskclock|devtools|email|genie|im|lwps|"
-	busybox echo "            mms|mp3|music|qoffice|spare|speech|tips|vvm]" # dock
+	busybox echo "            mms|mp3|music|qoffice|search|spare|speech|"
+	busybox echo "            tips|vvm]" # dock
 	busybox echo ""
 	busybox echo "Removes applications that may be unwanted on some"
 	busybox echo "systems.  The Applications are:"
@@ -534,6 +544,7 @@ function __rmapk_help () {
 	busybox echo "     mp3 - Amazon MP3"
 	busybox echo "     music - Music"
 	busybox echo "     qoffice - QuickOffice"
+	busybox echo "     search - Google Search"
 	busybox echo "     spare - Spare Parts"
 	busybox echo "     speech - Speech Recorder"
 	busybox echo "     tips - Tips"
@@ -992,7 +1003,8 @@ case ${CMD} in
 		busybox echo "     mtdinfo"
 		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|chrome|"
 		busybox echo "            deskclock|devtools|email|genie|im|lwps|"
-		busybox echo "            mms|mp3|music|qoffice|spare|speech|tips|vvm]" # dock
+		busybox echo "            mms|mp3|music|qoffice|search|spare|speech|"
+		busybox echo "            tips|vvm]" # dock
 		busybox echo "     swapinfo"
 		busybox echo "     switchapk [clock|music]"
 		busybox echo "     sysro"
