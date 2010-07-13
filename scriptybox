@@ -454,11 +454,6 @@ function __rmapk () {
 					"News and Weather" \
 					"/system/app/GenieWidget.apk"
 				;;
-			im)
-				__rmapk_helper \
-					"IM" \
-					"/system/app/IM.apk"
-				;;
 			lwps)
 				__rmapk_helper \
 					"Live Wallpapers" \
@@ -521,9 +516,9 @@ function __rmapk () {
 function __rmapk_help () {
 	busybox echo "Usage:"
 	busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|chrome|"
-	busybox echo "            deskclock|devtools|email|genie|im|lwps|"
-	busybox echo "            mms|mp3|music|qoffice|search|spare|speech|"
-	busybox echo "            tips|vvm]" # dock
+	busybox echo "            deskclock|devtools|email|genie|lwps|mms|"
+	busybox echo "            mp3|music|qoffice|search|spare|speech|tips|"
+	busybox echo "            vvm]" # dock
 	busybox echo ""
 	busybox echo "Removes applications that may be unwanted on some"
 	busybox echo "systems.  The Applications are:"
@@ -538,7 +533,6 @@ function __rmapk_help () {
 	#busybox echo "     dock - Dock"
 	busybox echo "     email - Stock email"
 	busybox echo "     genie - News and Weather"
-	busybox echo "     im - Stock IM"
 	busybox echo "     lwps - Live Wallpapers"
 	busybox echo "     mms - Stock MMS"
 	busybox echo "     mp3 - Amazon MP3"
@@ -1002,9 +996,9 @@ case ${CMD} in
 		busybox echo "     meminfo"
 		busybox echo "     mtdinfo"
 		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|chrome|"
-		busybox echo "            deskclock|devtools|email|genie|im|lwps|"
-		busybox echo "            mms|mp3|music|qoffice|search|spare|speech|"
-		busybox echo "            tips|vvm]" # dock
+		busybox echo "            deskclock|devtools|email|genie|lwps|mms|"
+		busybox echo "            mp3|music|qoffice|search|spare|speech|tips|"
+		busybox echo "            vvm]" # dock
 		busybox echo "     swapinfo"
 		busybox echo "     switchapk [clock|music]"
 		busybox echo "     sysro"
