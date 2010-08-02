@@ -251,6 +251,7 @@ function __freemem () {
 ###############################################################################
 # function name: __freemem
 # parameters: $1 - (50mb|75mb|100mb|default): how much ram to keep free
+#             $2 - (i_understand_how_stupid_this_is_and_choose_to_use_it_anyway): verification of use
 # returns: void
 # description:
 #     set up the memfree task killer to leave a certain amount of ram free
@@ -258,28 +259,51 @@ function __freemem () {
 	if busybox [ $# == 0 ] ; then
 		__freemem_help
 	else
-		case $1 in
-			50mb)
-				# 10mb,15mb,25mb,30mb,40mb,50mb
-				__freemem_helper 2560 3840 6400 7680 10240 12800
-				;;
-			75mb)
-				# 10mb,15mb,25mb,40mb,50mb,75mb
-				__freemem_helper 2560 3840 6400 10240 12800 19200
-				;;
-			100mb)
-				# 10mb,15mb,25mb,50mb,70mb,100mb
-				__freemem_helper 2560 3840 6400 12800 12800 25600
-				;;
-			default)
-				# 6mb,8mb,16mb,20mb,22mb,24mb (default)
-				__freemem_helper 1536 2048 4096 5120 5632 6144
-				;;
-			*)
-				__freemem_help
-				;;
-		esac
+		if busybox [ "$2" == "i_understand_and_choose_to_use_it_anyway" ] ; then
+			case $1 in
+				50mb)
+					# 10mb,15mb,25mb,30mb,40mb,50mb
+					__freemem_helper 2560 3840 6400 7680 10240 12800
+					;;
+				75mb)
+					# 10mb,15mb,25mb,40mb,50mb,75mb
+					__freemem_helper 2560 3840 6400 10240 12800 19200
+					;;
+				100mb)
+					# 10mb,15mb,25mb,50mb,70mb,100mb
+					__freemem_helper 2560 3840 6400 12800 12800 25600
+					;;
+				default)
+					# 6mb,8mb,16mb,20mb,22mb,24mb (default)
+					__freemem_helper 1536 2048 4096 5120 5632 6144
+					;;
+				*)
+					__freemem_help
+					;;
+			esac
+		else
+			__freemem_warning
+		fi
 	fi
+}
+
+function __freemem_warning () {
+	busybox echo "!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!"
+	busybox echo ""
+	busybox echo "Freemem is a script that tells the native task killer for"
+	busybox echo "Android to keep large blocks of memory available at all"
+	busybox echo "times.  This is poor in practice as unused memory is"
+	busybox echo "wasted memory.  It is best to use the default settings"
+	busybox echo "to allow the system to make the most out of the memory"
+	busybox echo "it has available."
+	busybox echo ""
+	busybox echo "If you wish to ignore this warning, you can still run"
+	busybox echo "this command by adding the following to the end of the"
+	busybox echo "command:"
+	busybox echo "  i_understand_and_choose_to_use_it_anyway"
+	busybox echo ""
+	busybox echo "Example:"
+	busybox echo "  freemem 50mb i_understand_and_choose_to_use_it_anyway"
 }
 
 function __freemem_help () {
