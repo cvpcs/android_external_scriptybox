@@ -31,7 +31,7 @@ SYSTEM_ETC=/system/etc
 SCRIPT_ETC="${SYSTEM_ETC}/scriptybox"
 
 # location of file downloads
-FILES_URL="http://sapphire.cvpcs.org/files/$(getprop ro.cvpcs.build.name)/$(getprop ro.cvpcs.build.version)"
+FILES_URL="$(getprop ro.cvpcs.scriptybox.files_url)"
 
 # first assume we're using a symbolic link
 CMD=$(basename $0)
