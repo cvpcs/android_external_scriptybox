@@ -740,7 +740,7 @@ function __switchapk_help {
 	busybox echo "    launcher [adw|stock] - either ADW or Stock Launcher"
 	busybox echo "    music [eliotstocker|milestone|stock] - either the Eliot Stocker,"
 	busybox echo "              Milestone or stock 2.2 Music app"
-	busybox echo"     phone [cytown|stock] - either the Cytown or Stock Phone"
+	busybox echo "    phone [cytown|stock] - either the Cytown or Stock Phone"
 }
 
 function __switchapk_helper () {
