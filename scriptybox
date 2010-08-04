@@ -666,14 +666,14 @@ function __switchapk () {
 					adw)
 						__switchapk_helper \
 							"Launcher" "ADW Launcher" \
-							"ADWLauncher.apk" "Launcher.apk" \
-							"Launcher.apk"
+							"ADWLauncher.apk" "Launcher2.apk" \
+							"Launcher2.apk"
 						;;
 					stock)
 						__switchapk_helper \
 							"Launcher" "2.2 Stock Launcher" \
-							"Launcher.apk" "Launcher.apk" \
-							"Launcher.apk"
+							"Launcher2.apk" "Launcher2.apk" \
+							"Launcher2.apk"
 						;;
 					*)
 						busybox echo "Did not understand [$@]"
