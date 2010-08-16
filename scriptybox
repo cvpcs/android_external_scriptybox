@@ -443,11 +443,6 @@ function __rmapk () {
 					"/system/app/CarHomeGoogle.apk" \
 					"/system/app/CarHomeLauncher.apk"
 				;;
-			chrome)
-				__rmapk_helper \
-					"Chrome To Phone" \
-					"/system/app/ChromeToPhone.apk"
-				;;
 			corpcal)
 				__rmapk_helper \
 					"Corporate Calendar" \
@@ -539,7 +534,7 @@ function __rmapk () {
 
 function __rmapk_help () {
 	busybox echo "Usage:"
-	busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|chrome|"
+	busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
 	busybox echo "            deskclock|devtools|email|genie|lwps|mms|"
 	busybox echo "            mp3|music|qoffice|search|spare|speech|tips|"
 	busybox echo "            vvm]" # dock
@@ -551,7 +546,6 @@ function __rmapk_help () {
 	busybox echo "     calc - Stock calculator"
 	busybox echo "     carhome - Stock car home"
 	busybox echo "     corpcal - Corporate Calendar"
-	busybox echo "     chrome - Chrome To Phone"
 	busybox echo "     deskclock - Desk Clock"
 	busybox echo "     devtools - Development Tools"
 	#busybox echo "     dock - Dock"
@@ -1059,7 +1053,7 @@ case ${CMD} in
 		busybox echo "     halt"
 		busybox echo "     meminfo"
 		busybox echo "     mtdinfo"
-		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|chrome|"
+		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
 		busybox echo "            deskclock|devtools|email|genie|lwps|mms|"
 		busybox echo "            mp3|music|qoffice|search|spare|speech|tips|"
 		busybox echo "            vvm]" # dock
