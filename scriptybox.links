@@ -2,6 +2,7 @@ xbin/adblock
 xbin/camsounds
 xbin/compcache
 xbin/cpuinfo
+xbin/cwiid
 xbin/freemem
 xbin/halt
 xbin/meminfo

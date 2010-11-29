@@ -247,6 +247,91 @@ function __cpuinfo_help () {
 	busybox echo "Displays all of the CPU information for the system"
 }
 
+function __cwiid () {
+###############################################################################
+# function name: __cwiid
+# parameters: $1 - (on|off|status): determine if compcache turns on or off or
+#                                   displays a status
+# returns: void
+# description:
+#     turns on (or off) cwiid wiimote connectivity, or displays the status
+#     of the daemon
+#
+	if busybox [ $# == 0 ] ; then
+		__cwiid_help
+	else
+		cwiictrl="$(busybox which wminput 2>/dev/null)"
+		cwiiconf="$(getprop persist.sys.gem.cwiid.conf)"
+
+		if busybox [ -z "${cwiictrl}" ] ; then
+		        busybox echo "FATAL ERROR: Could not find wminput applicaiton"
+		        return
+		fi
+
+		if busybox [ -z "${cwiiconf}" ] ; then
+			cwiiconf="buttons"
+		fi
+
+		case $1 in
+			on)
+				if busybox [ ! -z "$(busybox pgrep wminput 2>/dev/null)" ] ; then
+					busybox echo "CWiiD daemon is already running."
+				else
+					busybox echo -n "Starting CWiiD daemon ... "
+
+					"${cwiictrl}" -c "${cwiiconf}" -d 2>/dev/null
+
+					busybox sleep 2s
+
+					if busybox [ ! -z "$(busybox pgrep wminput 2>/dev/null)" ] ; then
+						busybox echo "done"
+					else
+						busybox echo "ERROR"
+					fi
+				fi
+				;;
+			off)
+				busybox echo -n "Killing CWiiD Daemon ... "
+
+				i=0
+				while busybox [ ! -z "$(busybox pgrep wminput 2>/dev/null)" ] ; do
+					busybox killall wminput 2>/dev/null
+					busybox sleep 2s
+
+					if [ ${i} -lt 5 ] ; then
+						i=$(busybox expr ${i} + 1)
+					else
+						break
+					fi
+				done
+
+				if busybox [ -z "$(busybox pgrep wminput 2>/dev/null)" ] ; then
+					busybox echo "done"
+				else
+					busybox echo "ERROR"
+				fi
+				;;
+			status)
+				if busybox [ -z "$(busybox pgrep wminput 2>/dev/null)" ] ; then
+					busybox echo "CWiiD daemon is currently not running."
+				else
+					busybox echo "CWiiD daemon is currently running."
+				fi
+				;;
+			*)
+				__cwiid_help
+				;;
+		esac
+	fi
+}
+
+function __cwiid_help () {
+	busybox echo "Usage:"
+	busybox echo "    cwiid [on|off|status]"
+	busybox echo ""
+	busybox echo "Turns CWiiD (WiiMote Connectivity) on or off, or displays status"
+}
+
 function __freemem () {
 ###############################################################################
 # function name: __freemem
@@ -950,6 +1035,9 @@ function __scriptybox_help () {
 		cpuinfo)
 			__cpuinfo_help
 			;;
+		cwiid)
+			__cwiid_help
+			;;
 		freemem)
 			__freemem_help
 			;;
@@ -1009,6 +1097,9 @@ case ${CMD} in
 	cpuinfo) # done
 		__cpuinfo ${ARG}
 		;;
+	cwiid) # done
+		__cwiid ${ARG}
+		;;
 	freemem) # done
 		__freemem ${ARG}
 		;;
@@ -1049,6 +1140,7 @@ case ${CMD} in
 		busybox echo "     camsounds [on|off]"
 		busybox echo "     cpuinfo"
 		busybox echo "     compcache [on|off|stats]"
+		busybox echo "     cwiid [on|off|status]"
 		busybox echo "     freemem [50mb|75mb|100mb|default]"
 		busybox echo "     halt"
 		busybox echo "     meminfo"
