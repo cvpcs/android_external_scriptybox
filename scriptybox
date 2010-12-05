@@ -279,7 +279,7 @@ function __cwiid () {
 				else
 					busybox echo -n "Starting CWiiD daemon ... "
 
-					"${cwiictrl}" -c "${cwiiconf}" -d 2>/dev/null
+					"${cwiictrl}" -c "${cwiiconf}" -d 2>/dev/null &
 
 					busybox sleep 2s
 
@@ -317,6 +317,7 @@ function __cwiid () {
 				else
 					busybox echo "CWiiD daemon is currently running."
 				fi
+				busybox echo "It's state is: [$(getprop service.gem.cwiid.status)]"
 				;;
 			*)
 				__cwiid_help
