@@ -296,8 +296,22 @@ function __cwiid () {
 				busybox killall -s INT wminput 2>/dev/null
 
 				# wait and see if it dies
+				i=0
 				while busybox [ ! -z "$(busybox pgrep wminput 2>/dev/null)" ] ; do
-					busybox sleep 2s
+					busybox sleep 1s
+
+					if busybox [ ${i} -lt 5 ] ; then
+						i=$(busybox expr ${i} + 1)
+					else
+						break
+					fi
+				done
+
+				# if it STILL hasn't died, we kill it
+				i=0
+				while busybox [ ! -z "$(busybox pgrep wminput 2>/dev/null)" ] ; do
+					busybox killall wminput 2>/dev/null
+					busybox sleep 1s
 
 					if busybox [ ${i} -lt 5 ] ; then
 						i=$(busybox expr ${i} + 1)
@@ -307,8 +321,10 @@ function __cwiid () {
 				done
 
 				if busybox [ -z "$(busybox pgrep wminput 2>/dev/null)" ] ; then
+					setprop "service.gem.cwiid.status" "stopped"
 					busybox echo "done"
 				else
+					setprop "service.gem.cwiid.status" "error"
 					busybox echo "ERROR"
 				fi
 				;;
