@@ -293,12 +293,13 @@ function __cwiid () {
 			off)
 				busybox echo -n "Killing CWiiD Daemon ... "
 
-				i=0
+				busybox killall -s INT wminput 2>/dev/null
+
+				# wait and see if it dies
 				while busybox [ ! -z "$(busybox pgrep wminput 2>/dev/null)" ] ; do
-					busybox killall wminput 2>/dev/null
 					busybox sleep 2s
 
-					if [ ${i} -lt 5 ] ; then
+					if busybox [ ${i} -lt 5 ] ; then
 						i=$(busybox expr ${i} + 1)
 					else
 						break
