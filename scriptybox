@@ -261,7 +261,7 @@ function __cwiid () {
 		__cwiid_help
 	else
 		cwiictrl="$(busybox which wminput 2>/dev/null)"
-		cwiiconf="$(getprop persist.sys.gem.cwiid.conf)"
+		cwiiconf="$(getprop persist.gem.cwiid.conf)"
 
 		if busybox [ -z "${cwiictrl}" ] ; then
 		        busybox echo "FATAL ERROR: Could not find wminput applicaiton"
@@ -321,10 +321,10 @@ function __cwiid () {
 				done
 
 				if busybox [ -z "$(busybox pgrep wminput 2>/dev/null)" ] ; then
-					setprop "service.gem.cwiid.status" "stopped"
+					setprop "gem.cwiid.status" "stopped"
 					busybox echo "done"
 				else
-					setprop "service.gem.cwiid.status" "error"
+					setprop "gem.cwiid.status" "error"
 					busybox echo "ERROR"
 				fi
 				;;
@@ -334,7 +334,7 @@ function __cwiid () {
 				else
 					busybox echo "CWiiD daemon is currently running."
 				fi
-				busybox echo "It's state is: [$(getprop service.gem.cwiid.status)]"
+				busybox echo "It's state is: [$(getprop gem.cwiid.status)]"
 				;;
 			*)
 				__cwiid_help
