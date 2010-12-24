@@ -758,33 +758,33 @@ function __switchapk () {
 						;;
 				esac
 				;;
-			launcher)
-				case $2 in
-					adw)
-						__switchapk_helper \
-							"Launcher" "ADW Launcher" \
-							"ADWLauncher.apk" "Launcher2.apk" \
-							"Launcher2.apk"
-						;;
-					stock)
-						__switchapk_helper \
-							"Launcher" "2.2 Stock Launcher" \
-							"Launcher2.apk" "Launcher2.apk" \
-							"Launcher2.apk"
-						;;
-					*)
-						busybox echo "Did not understand [$@]"
-						;;
-				esac
-				;;
+#			launcher)
+#				case $2 in
+#					adw)
+#						__switchapk_helper \
+#							"Launcher" "ADW Launcher" \
+#							"ADWLauncher.apk" "Launcher2.apk" \
+#							"Launcher2.apk"
+#						;;
+#					stock)
+#						__switchapk_helper \
+#							"Launcher" "2.2 Stock Launcher" \
+#							"Launcher2.apk" "Launcher2.apk" \
+#							"Launcher2.apk"
+#						;;
+#					*)
+#						busybox echo "Did not understand [$@]"
+#						;;
+#				esac
+#				;;
 			music)
 				case $2 in
-					eliotstocker)
-						__switchapk_helper \
-							"Music" "Eliot Stocker Music Overhaul" \
-							"EliotStockerMusic.apk" "Music.apk" \
-							"Music.apk"
-						;;
+#					eliotstocker)
+#						__switchapk_helper \
+#							"Music" "Eliot Stocker Music Overhaul" \
+#							"EliotStockerMusic.apk" "Music.apk" \
+#							"Music.apk"
+#						;;
 					milestone)
 						__switchapk_helper \
 							"Music" "Milestone Music" \
@@ -802,25 +802,25 @@ function __switchapk () {
 						;;
 				esac
 				;;
-			phone)
-				case $2 in
-					cytown)
-						__switchapk_helper \
-							"Phone" "Cytown Phone Overhaul" \
-							"CytownPhone.apk" "Phone.apk" \
-							"Phone.apk"
-						;;
-					stock)
-						__switchapk_helper \
-							"Phone" "2.2 Stock Phone" \
-							"Phone.apk" "Phone.apk" \
-							"Phone.apk"
-						;;
-					*)
-						busybox echo "Did not understand [$@]"
-						;;
-				esac
-				;;
+#			phone)
+#				case $2 in
+#					cytown)
+#						__switchapk_helper \
+#							"Phone" "Cytown Phone Overhaul" \
+#							"CytownPhone.apk" "Phone.apk" \
+#							"Phone.apk"
+#						;;
+#					stock)
+#						__switchapk_helper \
+#							"Phone" "2.2 Stock Phone" \
+#							"Phone.apk" "Phone.apk" \
+#							"Phone.apk"
+#						;;
+#					*)
+#						busybox echo "Did not understand [$@]"
+#						;;
+#				esac
+#				;;
 			*)
 				__switchapk_help
 				;;
@@ -834,10 +834,10 @@ function __switchapk_help {
 	busybox echo ""
 	busybox echo "Switches default applications for the following:"
 	busybox echo "    clock [alarm|desk] - either the AlarmClock or DeskClock app"
-	busybox echo "    launcher [adw|stock] - either ADW or Stock Launcher"
-	busybox echo "    music [eliotstocker|milestone|stock] - either the Eliot Stocker,"
-	busybox echo "              Milestone or stock 2.2 Music app"
-	busybox echo "    phone [cytown|stock] - either the Cytown or Stock Phone"
+#	busybox echo "    launcher [adw|stock] - either ADW or Stock Launcher"
+	busybox echo "    music [milestone|stock] - either the Milestone or stock 2.2"
+        busybox echo "             Music app"
+#	busybox echo "    phone [cytown|stock] - either the Cytown or Stock Phone"
 }
 
 function __switchapk_helper () {
@@ -1168,7 +1168,7 @@ case ${CMD} in
 		busybox echo "            mp3|music|qoffice|search|spare|speech|tips|"
 		busybox echo "            vvm]" # dock
 		busybox echo "     swapinfo"
-		busybox echo "     switchapk [clock|launcher|music|phone]"
+		busybox echo "     switchapk [clock|music]"
 		busybox echo "     sysro"
 		busybox echo "     sysrw"
 		busybox echo "     zipalign_apks"
