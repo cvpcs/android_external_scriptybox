@@ -37,6 +37,40 @@ FILES_URL="$(getprop ro.cvpcs.scriptybox.files_url)"
 CMD=$(basename $0)
 ARG=$@
 
+# ensure we are getting an argument
+if busybox [ ! -z "${ARG}" ] ; then
+	# if we are calling the script directly, shift the args
+	if busybox [ "$(busybox basename $0)" == "${SCRIPT_NAME}" ] ; then
+		# oh noes! direct scripting! time to shift and reset
+		CMD=$1;	shift 1
+		ARG=$@
+	fi
+fi
+
+# check for scriptybox gem interface
+if busybox [ "$(getprop gem.sb.exec)" = "1" ] ; then
+	# clear our set bit
+	setprop "gem.sb.exec" "0"
+
+	# set command and clean/sanatize it
+	CMD="$(busybox echo $(getprop gem.sb.arg0) | busybox sed -r 's/[^a-zA-Z0-9_-]//g')"
+	setprop "gem.sb.arg0" ""
+
+	# create our argument list
+	ARG="$(busybox echo $(getprop gem.sb.arg1) | busybox sed -r 's/[^a-zA-Z0-9_-]//g')"
+	setprop "gem.sb.arg1" ""
+
+	i=2
+	while [ ! -z "$(getprop gem.sb.arg${i})" ] ; do
+		ARG="${ARG} $(busybox echo $(getprop gem.sb.arg${i}) | busybox sed -r 's/[^a-zA-Z0-9_-]//g')"
+		setprop "gem.sb.arg${i}" ""
+
+		i=$(busybox expr ${i} + 1)
+	done
+
+	# at this point we should have a sanatized command string
+fi
+
 # declare our internal commands
 function __adblock () {
 ###############################################################################
@@ -1091,16 +1125,6 @@ function __scriptybox_help () {
 			;;
 	esac
 }
-
-# ensure we are getting an argument
-if busybox [ ! -z "${ARG}" ] ; then
-	# if we are calling the script directly, shift the args
-	if busybox [ "$(busybox basename $0)" == "${SCRIPT_NAME}" ] ; then
-		# oh noes! direct scripting! time to shift and reset
-		CMD=$1;	shift 1
-		ARG=$@
-	fi
-fi
 
 case ${CMD} in
 	adblock) # done
