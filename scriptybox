@@ -37,6 +37,12 @@ FILES_URL="$(getprop ro.cvpcs.scriptybox.files_url)"
 CMD=$(basename $0)
 ARG=$@
 
+# we override these if using the gem interface
+STDOUT="/proc/self/fd/1"
+STDERR="/proc/self/fd/2"
+GEM_STDOUT="/cache/sb.out"
+GEM_STDERR="/cache/sb.err"
+
 # ensure we are getting an argument
 if busybox [ ! -z "${ARG}" ] ; then
 	# if we are calling the script directly, shift the args
@@ -68,7 +74,9 @@ if busybox [ "$(getprop gem.sb.exec)" = "1" ] ; then
 		i=$(busybox expr ${i} + 1)
 	done
 
-	# at this point we should have a sanatized command string
+	# at this point we should have a sanatized command string, now redirect output
+	STDOUT="${GEM_STDOUT}"
+	STDERR="${GEM_STDERR}"
 fi
 
 # declare our internal commands
@@ -89,17 +97,17 @@ function __adblock () {
 		case $1 in
 			on)
 				__sysrw > /dev/null
-				busybox echo -n "Enabling ad blocking ... "
+				busybox echo -n "Enabling ad blocking ... " > "${STDOUT}"
 				busybox cat "${hostfile_local}" > /system/etc/hosts
 				busybox cat "${hostfile_adblock}" >> /system/etc/hosts
-				busybox echo "done"
+				busybox echo "done" > "${STDOUT}"
 				__sysro > /dev/null
 			;;
 			off)
 				__sysrw > /dev/null
-				busybox echo -n "Disabling ad blocking ... "
+				busybox echo -n "Disabling ad blocking ... " > "${STDOUT}"
 				busybox cat "${hostfile_local}" > /system/etc/hosts
-				busybox echo "done"
+				busybox echo "done" > "${STDOUT}"
 				__sysro > /dev/null
 			;;
 			*)
@@ -110,10 +118,10 @@ function __adblock () {
 }
 
 function __adblock_help () {
-	busybox echo "Usage:"
-	busybox echo "    adblock [on|off]"
-	busybox echo ""
-	busybox echo "Turns ad blocking for the system on or off"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    adblock [on|off]" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Turns ad blocking for the system on or off" > "${STDOUT}"
 }
 
 function __camsounds () {
@@ -134,18 +142,18 @@ function __camsounds () {
 		case $1 in
 			on)
 				__sysrw > /dev/null
-				busybox echo -n "Enabling camera audio ... "
+				busybox echo -n "Enabling camera audio ... " > "${STDOUT}"
 				if busybox [ -e "${sound_clk}.bak" ] ; then busybox mv "${sound_clk}.bak" "${sound_clk}"; fi
 				if busybox [ -e "${sound_rec}.bak" ] ; then busybox mv "${sound_rec}.bak" "${sound_rec}"; fi
-				busybox echo "done"
+				busybox echo "done" > "${STDOUT}"
 				__sysro > /dev/null
 				;;
 			off)
 				__sysrw > /dev/null
-				busybox echo -n "Disabling camera audio ... "
+				busybox echo -n "Disabling camera audio ... " > "${STDOUT}"
 				if busybox [ -e "${sound_clk}" ] ; then busybox mv "${sound_clk}" "${sound_clk}.bak"; fi
 				if busybox [ -e "${sound_rec}" ] ; then busybox mv "${sound_rec}" "${sound_rec}.bak"; fi
-				busybox echo "done"
+				busybox echo "done" > "${STDOUT}"
 				__sysro > /dev/null
 				;;
 			*)
@@ -156,10 +164,10 @@ function __camsounds () {
 }
 
 function __camsounds_help () {
-	busybox echo "Usage:"
-	busybox echo "    camsounds [on|off]"
-	busybox echo ""
-	busybox echo "Turns the camera sounds (shutter and video cam) on or off"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    camsounds [on|off]" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Turns the camera sounds (shutter and video cam) on or off" > "${STDOUT}"
 }
 
 function __compcache () {
@@ -180,7 +188,7 @@ function __compcache () {
                 rzctrl=$(busybox which rzscontrol 2>/dev/null)
 
 		if busybox [ -z "${rzctrl}" ] ; then
-		        busybox echo "FATAL ERROR: Could not find rzscontrol applicaiton"
+		        busybox echo "FATAL ERROR: Could not find rzscontrol applicaiton" > "${STDERR}"
 		        return
 		fi
 
@@ -189,7 +197,7 @@ function __compcache () {
 		        # no module, maybe the ram device just exists?
 
 		        if busybox [ ! -b "${rzswap_file}" ] ; then
-		                busybox echo "FATAL ERROR: System does not support compcache"
+		                busybox echo "FATAL ERROR: System does not support compcache" > "${STDERR}"
 		                return
 		        fi
 		fi
@@ -197,48 +205,48 @@ function __compcache () {
 		case $1 in
 			on)
 		               if busybox [ -z "$(busybox lsmod | busybox grep ${rzswap_mod})" ] ; then
-		                        busybox echo -n "Loading ramzswap module ... "
+		                        busybox echo -n "Loading ramzswap module ... " > "${STDOUT}"
 
 		                        if ! busybox modprobe "${rzswap_mod}" "disksize_kb=${rzswap_size}" ; then
-		                                busybox echo "FAIL"
+		                                busybox echo "FAIL" > "${STDERR}"
 		                                return
 		                        fi
 
-					busybox echo "done"
+					busybox echo "done" > "${STDOUT}"
 		                fi
 
 		                if busybox [ -z "$(busybox grep ${rzswap_file} /proc/swaps)" ] ; then
-					busybox echo -n "Enabling swap ... "
+					busybox echo -n "Enabling swap ... " > "${STDOUT}"
 		                        busybox swapon "${rzswap_file}"
-					busybox echo "done"
+					busybox echo "done" > "${STDOUT}"
 		                fi
 
-				busybox echo "Compcache has been enabled"
+				busybox echo "Compcache has been enabled" > "${STDOUT}"
 				;;
 			off)
         		        if busybox [ ! -z "$(busybox grep ${rzswap_file} /proc/swaps)" ] ; then
-		                        busybox echo -n "Disabling swap ... "
+		                        busybox echo -n "Disabling swap ... " > "${STDOUT}"
 		                        busybox swapoff "${rzswap_file}"
-					busybox echo "done"
+					busybox echo "done" > "${STDOUT}"
 
-					busybox echo -n "Resetting ramzswap ... "
+					busybox echo -n "Resetting ramzswap ... " > "${STDOUT}"
 		                        "${rzctrl}" "${rzswap_file}" --reset
-					busybox echo "done"
+					busybox echo "done" > "${STDOUT}"
 		                fi
 
 		                if busybox [ ! -z "$(busybox lsmod | busybox grep ${rzswap_mod})" ] ; then
-		                        busybox echo -n "Unloading ramzswap module ... "
+		                        busybox echo -n "Unloading ramzswap module ... " > "${STDOUT}"
 		                        busybox modprobe -r "${rzswap_mod}"
-					busybox echo "done"
+					busybox echo "done" > "${STDOUT}"
 		                fi
 
-				busybox echo "Compcache has been disabled"
+				busybox echo "Compcache has been disabled" > "${STDOUT}"
 				;;
 			stats)
 				if busybox [ -b "${rzswap_file}" ] ; then
-					"${rzctrl}" "${rzswap_file}" --stats
+					"${rzctrl}" "${rzswap_file}" --stats > "${STDOUT}"
 				else
-					busybox echo "Compcache does not appear to be enabled"
+					busybox echo "Compcache does not appear to be enabled" > "${STDOUT}"
 				fi
 				;;
 			*)
@@ -249,10 +257,10 @@ function __compcache () {
 }
 
 function __compcache_help () {
-	busybox echo "Usage:"
-	busybox echo "    compcache [on|off|stats]"
-	busybox echo ""
-	busybox echo "Turns compcache (in-RAM swap) on or off"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    compcache [on|off|stats]" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Turns compcache (in-RAM swap) on or off" > "${STDOUT}"
 }
 
 function __cpuinfo () {
@@ -267,18 +275,18 @@ function __cpuinfo () {
 		__cpuinfo_help
 	else
 		if busybox [ -e /proc/cpuinfo ] ; then
-			busybox cat /proc/cpuinfo
+			busybox cat /proc/cpuinfo > "${STDOUT}"
 		else
-			busybox echo "Cpuinfo not supported by kernel"
+			busybox echo "Cpuinfo not supported by kernel" > "${STDOUT}"
 		fi
 	fi
 }
 
 function __cpuinfo_help () {
-	busybox echo "Usage:"
-	busybox echo "    cpuinfo"
-	busybox echo ""
-	busybox echo "Displays all of the CPU information for the system"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    cpuinfo" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Displays all of the CPU information for the system" > "${STDOUT}"
 }
 
 function __cwiid () {
@@ -298,7 +306,7 @@ function __cwiid () {
 		cwiiconf="$(getprop persist.gem.cwiid.conf)"
 
 		if busybox [ -z "${cwiictrl}" ] ; then
-		        busybox echo "FATAL ERROR: Could not find wminput applicaiton"
+		        busybox echo "FATAL ERROR: Could not find wminput applicaiton" > "${STDERR}"
 		        return
 		fi
 
@@ -309,23 +317,23 @@ function __cwiid () {
 		case $1 in
 			on)
 				if busybox [ ! -z "$(busybox pgrep wminput 2>/dev/null)" ] ; then
-					busybox echo "CWiiD daemon is already running."
+					busybox echo "CWiiD daemon is already running." > "${STDOUT}"
 				else
-					busybox echo -n "Starting CWiiD daemon ... "
+					busybox echo -n "Starting CWiiD daemon ... " > "${STDOUT}"
 
 					"${cwiictrl}" -c "${cwiiconf}" -d 2>/dev/null &
 
 					busybox sleep 2s
 
 					if busybox [ ! -z "$(busybox pgrep wminput 2>/dev/null)" ] ; then
-						busybox echo "done"
+						busybox echo "done" > "${STDOUT}"
 					else
-						busybox echo "ERROR"
+						busybox echo "ERROR" > "${STDERR}"
 					fi
 				fi
 				;;
 			off)
-				busybox echo -n "Killing CWiiD Daemon ... "
+				busybox echo -n "Killing CWiiD Daemon ... " > "${STDOUT}"
 
 				busybox killall -s INT wminput 2>/dev/null
 
@@ -356,19 +364,19 @@ function __cwiid () {
 
 				if busybox [ -z "$(busybox pgrep wminput 2>/dev/null)" ] ; then
 					setprop "gem.cwiid.status" "stopped"
-					busybox echo "done"
+					busybox echo "done" > "${STDOUT}"
 				else
 					setprop "gem.cwiid.status" "error"
-					busybox echo "ERROR"
+					busybox echo "ERROR" > "${STDERR}"
 				fi
 				;;
 			status)
 				if busybox [ -z "$(busybox pgrep wminput 2>/dev/null)" ] ; then
-					busybox echo "CWiiD daemon is currently not running."
+					busybox echo "CWiiD daemon is currently not running." > "${STDOUT}"
 				else
-					busybox echo "CWiiD daemon is currently running."
+					busybox echo "CWiiD daemon is currently running." > "${STDOUT}"
 				fi
-				busybox echo "It's state is: [$(getprop gem.cwiid.status)]"
+				busybox echo "It's state is: [$(getprop gem.cwiid.status)]" > "${STDOUT}"
 				;;
 			*)
 				__cwiid_help
@@ -378,10 +386,10 @@ function __cwiid () {
 }
 
 function __cwiid_help () {
-	busybox echo "Usage:"
-	busybox echo "    cwiid [on|off|status]"
-	busybox echo ""
-	busybox echo "Turns CWiiD (WiiMote Connectivity) on or off, or displays status"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    cwiid [on|off|status]" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Turns CWiiD (WiiMote Connectivity) on or off, or displays status" > "${STDOUT}"
 }
 
 function __freemem () {
@@ -425,30 +433,30 @@ function __freemem () {
 }
 
 function __freemem_warning () {
-	busybox echo "!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!"
-	busybox echo ""
-	busybox echo "Freemem is a script that tells the native task killer for"
-	busybox echo "Android to keep large blocks of memory available at all"
-	busybox echo "times.  This is poor in practice as unused memory is"
-	busybox echo "wasted memory.  It is best to use the default settings"
-	busybox echo "to allow the system to make the most out of the memory"
-	busybox echo "it has available."
-	busybox echo ""
-	busybox echo "If you wish to ignore this warning, you can still run"
-	busybox echo "this command by adding the following to the end of the"
-	busybox echo "command:"
-	busybox echo "  i_understand_and_choose_to_use_it_anyway"
-	busybox echo ""
-	busybox echo "Example:"
-	busybox echo "  freemem 50mb i_understand_and_choose_to_use_it_anyway"
+	busybox echo "!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Freemem is a script that tells the native task killer for" > "${STDOUT}"
+	busybox echo "Android to keep large blocks of memory available at all" > "${STDOUT}"
+	busybox echo "times.  This is poor in practice as unused memory is" > "${STDOUT}"
+	busybox echo "wasted memory.  It is best to use the default settings" > "${STDOUT}"
+	busybox echo "to allow the system to make the most out of the memory" > "${STDOUT}"
+	busybox echo "it has available." > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "If you wish to ignore this warning, you can still run" > "${STDOUT}"
+	busybox echo "this command by adding the following to the end of the" > "${STDOUT}"
+	busybox echo "command:" > "${STDOUT}"
+	busybox echo "  i_understand_and_choose_to_use_it_anyway" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Example:" > "${STDOUT}"
+	busybox echo "  freemem 50mb i_understand_and_choose_to_use_it_anyway" > "${STDOUT}"
 }
 
 function __freemem_help () {
-	busybox echo "Usage:"
-	busybox echo "    freemem [50mb|75mb|100mb|default]"
-	busybox echo ""
-	busybox echo "Configures the system to enusre that at least a given"
-	busybox echo "amount of RAM is always available"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    freemem [50mb|75mb|100mb|default]" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Configures the system to enusre that at least a given" > "${STDOUT}"
+	busybox echo "amount of RAM is always available" > "${STDOUT}"
 }
 
 function __freemem_helper () {
@@ -460,15 +468,15 @@ function __freemem_helper () {
 #     helper function to push memkill values to the low memory killer
 #
 	if busybox [ $# == 6 ] ; then
-		busybox echo -n "Setting memkiller to keep $(busybox expr $6 \* 4 / 1024)mb of RAM free ... "
+		busybox echo -n "Setting memkiller to keep $(busybox expr $6 \* 4 / 1024)mb of RAM free ... " > "${STDOUT}"
 		busybox echo "$1,$2,$3,$4,$5,$6" > /sys/module/lowmemorykiller/parameters/minfree
-		busybox echo "done"
-		busybox echo ""
-		busybox echo "WARNING: Increasing auto-task killing may have adverse effects"
-		busybox echo "         on the system.  If you experience unexpected issues,"
-		busybox echo "         try reducing the amount of memory kept free."
+		busybox echo "done" > "${STDOUT}"
+		busybox echo "" > "${STDOUT}"
+		busybox echo "WARNING: Increasing auto-task killing may have adverse effects" > "${STDOUT}"
+		busybox echo "         on the system.  If you experience unexpected issues," > "${STDOUT}"
+		busybox echo "         try reducing the amount of memory kept free." > "${STDOUT}"
 	else
-		busybox echo "Unable to set memkiller ... "
+		busybox echo "Unable to set memkiller ... " > "${STDERR}"
 	fi
 }
 
@@ -483,16 +491,16 @@ function __halt () {
 	if busybox [ $# -gt 0 ] ; then
 		__halt_help
 	else
-		busybox echo "Powering down ... "
+		busybox echo "Powering down ... " > "${STDOUT}"
 		reboot -p
 	fi
 }
 
 function __halt_help () {
-	busybox echo "Usage:"
-	busybox echo "    halt"
-	busybox echo ""
-	busybox echo "Powers off the phone"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    halt" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Powers off the phone" > "${STDOUT}"
 }
 
 function __meminfo () {
@@ -507,18 +515,18 @@ function __meminfo () {
 		__meminfo_help
 	else
 		if busybox [ -e /proc/meminfo ] ; then
-			busybox cat /proc/meminfo
+			busybox cat /proc/meminfo > "${STDOUT}"
 		else
-			busybox echo "Meminfo not supported by kernel"
+			busybox echo "Meminfo not supported by kernel" > "${STDERR}"
 		fi
 	fi
 }
 
 function __meminfo_help () {
-	busybox echo "Usage:"
-	busybox echo "    meminfo"
-	busybox echo ""
-	busybox echo "Displays all of the memory information for the system"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    meminfo" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Displays all of the memory information for the system" > "${STDOUT}"
 }
 
 function __mtdinfo () {
@@ -533,18 +541,18 @@ function __mtdinfo () {
 		__mtdinfo_help
 	else
 		if busybox [ -e /proc/mtd ] ; then
-			busybox cat /proc/mtd
+			busybox cat /proc/mtd > "${STDOUT}"
 		else
-			busybox echo "Mtdinfo not supported by kernel"
+			busybox echo "Mtdinfo not supported by kernel" > "${STDERR}"
 		fi
 	fi
 }
 
 function __mtdinfo_help () {
-	busybox echo "Usage:"
-	busybox echo "    mtdinfo"
-	busybox echo ""
-	busybox echo "Displays all of the internal partitions for the system"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    mtdinfo" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Displays all of the internal partitions for the system" > "${STDOUT}"
 }
 
 function __rmapk () {
@@ -670,34 +678,34 @@ function __rmapk () {
 }
 
 function __rmapk_help () {
-	busybox echo "Usage:"
-	busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
-	busybox echo "            deskclock|devtools|email|genie|lwps|mms|"
-	busybox echo "            mp3|music|qoffice|search|spare|speech|tips|"
-	busybox echo "            vvm]" # dock
-	busybox echo ""
-	busybox echo "Removes applications that may be unwanted on some"
-	busybox echo "systems.  The Applications are:"
-	busybox echo "     alarm - Alarm Clock"
-	busybox echo "     browser - Stock browser"
-	busybox echo "     calc - Stock calculator"
-	busybox echo "     carhome - Stock car home"
-	busybox echo "     corpcal - Corporate Calendar"
-	busybox echo "     deskclock - Desk Clock"
-	busybox echo "     devtools - Development Tools"
-	#busybox echo "     dock - Dock"
-	busybox echo "     email - Stock email"
-	busybox echo "     genie - News and Weather"
-	busybox echo "     lwps - Live Wallpapers"
-	busybox echo "     mms - Stock MMS"
-	busybox echo "     mp3 - Amazon MP3"
-	busybox echo "     music - Music"
-	busybox echo "     qoffice - QuickOffice"
-	busybox echo "     search - Google Search"
-	busybox echo "     spare - Spare Parts"
-	busybox echo "     speech - Speech Recorder"
-	busybox echo "     tips - Tips"
-	busybox echo "     vvm - Visual VM"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|" > "${STDOUT}"
+	busybox echo "            deskclock|devtools|email|genie|lwps|mms|" > "${STDOUT}"
+	busybox echo "            mp3|music|qoffice|search|spare|speech|tips|" > "${STDOUT}"
+	busybox echo "            vvm]" # dock > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Removes applications that may be unwanted on some" > "${STDOUT}"
+	busybox echo "systems.  The Applications are:" > "${STDOUT}"
+	busybox echo "     alarm - Alarm Clock" > "${STDOUT}"
+	busybox echo "     browser - Stock browser" > "${STDOUT}"
+	busybox echo "     calc - Stock calculator" > "${STDOUT}"
+	busybox echo "     carhome - Stock car home" > "${STDOUT}"
+	busybox echo "     corpcal - Corporate Calendar" > "${STDOUT}"
+	busybox echo "     deskclock - Desk Clock" > "${STDOUT}"
+	busybox echo "     devtools - Development Tools" > "${STDOUT}"
+	#busybox echo "     dock - Dock" > "${STDOUT}"
+	busybox echo "     email - Stock email" > "${STDOUT}"
+	busybox echo "     genie - News and Weather" > "${STDOUT}"
+	busybox echo "     lwps - Live Wallpapers" > "${STDOUT}"
+	busybox echo "     mms - Stock MMS" > "${STDOUT}"
+	busybox echo "     mp3 - Amazon MP3" > "${STDOUT}"
+	busybox echo "     music - Music" > "${STDOUT}"
+	busybox echo "     qoffice - QuickOffice" > "${STDOUT}"
+	busybox echo "     search - Google Search" > "${STDOUT}"
+	busybox echo "     spare - Spare Parts" > "${STDOUT}"
+	busybox echo "     speech - Speech Recorder" > "${STDOUT}"
+	busybox echo "     tips - Tips" > "${STDOUT}"
+	busybox echo "     vvm - Visual VM" > "${STDOUT}"
 }
 
 function __rmapk_helper () {
@@ -713,19 +721,19 @@ function __rmapk_helper () {
 	app_files=$@
 
 	if busybox [ ! -z "${app_name}" ] ; then
-		busybox echo "Removing application: ${app_name}"
+		busybox echo "Removing application: ${app_name}" > "${STDOUT}"
 
 		__sysrw > /dev/null
 
 		for apk in ${app_files}; do
-			busybox echo -n "  Removing file: ${apk} ... "
+			busybox echo -n "  Removing file: ${apk} ... " > "${STDOUT}"
 
 			if busybox [ -e "${apk}" ] ; then
 				# i am basenaming this to make sure nothing bad happens
 				busybox rm "/system/app/$(busybox basename ${apk})"
-				busybox echo "done"
+				busybox echo "done" > "${STDOUT}"
 			else
-				busybox echo "already removed"
+				busybox echo "already removed" > "${STDOUT}"
 			fi
 		done
 
@@ -745,18 +753,18 @@ function __swapinfo () {
 		__swapinfo_help
 	else
                 if busybox [ -e /proc/swaps ] ; then
-			busybox cat /proc/swaps
+			busybox cat /proc/swaps > "${STDOUT}"
 		else
-			busybox echo "Swapinfo not supported by kernel"
+			busybox echo "Swapinfo not supported by kernel" > "${STDERR}"
 		fi
 	fi
 }
 
 function __swapinfo_help () {
-	busybox echo "Usage:"
-	busybox echo "    swapinfo"
-	busybox echo ""
-	busybox echo "Displays all of the swap information for a system"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    swapinfo" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Displays all of the swap information for a system" > "${STDOUT}"
 }
 
 function __switchapk () {
@@ -788,7 +796,7 @@ function __switchapk () {
 							"AlarmClock.apk"
 						;;
 					*)
-						busybox echo "Did not understand [$@]"
+						busybox echo "Did not understand [$@]" > "${STDOUT}"
 						;;
 				esac
 				;;
@@ -807,7 +815,7 @@ function __switchapk () {
 #							"Launcher2.apk"
 #						;;
 #					*)
-#						busybox echo "Did not understand [$@]"
+#						busybox echo "Did not understand [$@]" > "${STDOUT}"
 #						;;
 #				esac
 #				;;
@@ -832,7 +840,7 @@ function __switchapk () {
 							"Music.apk"
 						;;
 					*)
-						busybox echo "Did not understand [$@]"
+						busybox echo "Did not understand [$@]" > "${STDOUT}"
 						;;
 				esac
 				;;
@@ -851,7 +859,7 @@ function __switchapk () {
 #							"Phone.apk"
 #						;;
 #					*)
-#						busybox echo "Did not understand [$@]"
+#						busybox echo "Did not understand [$@]" > "${STDOUT}"
 #						;;
 #				esac
 #				;;
@@ -863,15 +871,15 @@ function __switchapk () {
 }
 
 function __switchapk_help {
-	busybox echo "Usage:"
-	busybox echo "    switchapk [application selection]"
-	busybox echo ""
-	busybox echo "Switches default applications for the following:"
-	busybox echo "    clock [alarm|desk] - either the AlarmClock or DeskClock app"
-#	busybox echo "    launcher [adw|stock] - either ADW or Stock Launcher"
-	busybox echo "    music [milestone|stock] - either the Milestone or stock 2.2"
-        busybox echo "             Music app"
-#	busybox echo "    phone [cytown|stock] - either the Cytown or Stock Phone"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    switchapk [application selection]" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Switches default applications for the following:" > "${STDOUT}"
+	busybox echo "    clock [alarm|desk] - either the AlarmClock or DeskClock app" > "${STDOUT}"
+#	busybox echo "    launcher [adw|stock] - either ADW or Stock Launcher" > "${STDOUT}"
+	busybox echo "    music [milestone|stock] - either the Milestone or stock 2.2" > "${STDOUT}"
+        busybox echo "             Music app" > "${STDOUT}"
+#	busybox echo "    phone [cytown|stock] - either the Cytown or Stock Phone" > "${STDOUT}"
 }
 
 function __switchapk_helper () {
@@ -894,35 +902,35 @@ function __switchapk_helper () {
 		copy_to_file="$4"; shift 4
 		delete_files="$@"
 
-		busybox echo "Replacing ${old_app_name} with ${new_app_name} ..."
+		busybox echo "Replacing ${old_app_name} with ${new_app_name} ..." > "${STDOUT}"
 
-		busybox echo "  Downloading required files:"
-		busybox echo -n "    ${new_app_file} ... "
+		busybox echo "  Downloading required files:" > "${STDOUT}"
+		busybox echo -n "    ${new_app_file} ... " > "${STDOUT}"
 		busybox wget -q -O "/cache/${new_app_file}" "${switchapk_files_url}/${new_app_file}"
 		if busybox [ -e "/cache/${new_app_file}" ] ; then
-			busybox echo "done"
+			busybox echo "done" > "${STDOUT}"
 
-			busybox echo -n "    ${new_app_file}.chksum ... "
+			busybox echo -n "    ${new_app_file}.chksum ... " > "${STDOUT}"
 			busybox wget -q -O "/cache/${new_app_file}.chksum" "${switchapk_files_url}/${new_app_file}.chksum"
 			if busybox [ -e "/cache/${new_app_file}.chksum" ] ; then
-				busybox echo "done"
+				busybox echo "done" > "${STDOUT}"
 
-				busybox echo "  Verifying download:"
+				busybox echo "  Verifying download:" > "${STDOUT}"
 
 				chksum_passed="1"
 
 				for i in md5 sha1 sha256 sha512; do
-					busybox echo -n "    Verifying ${i} checksum ... "
+					busybox echo -n "    Verifying ${i} checksum ... " > "${STDOUT}"
 					if busybox echo "$(busybox grep "${i}" "/cache/${new_app_file}.chksum" | busybox awk '{print $2 "  " $3}')" | busybox "${i}sum" -c -s ; then
-						busybox echo "pass"
+						busybox echo "pass" > "${STDOUT}"
 					else
-						busybox echo "FAIL"
+						busybox echo "FAIL" > "${STDERR}"
 						chksum_passed="0"
 					fi
 				done
 
 				if busybox [ "$chksum_passed" -eq "1" ] ; then
-					busybox echo -n "  Switching apks ... ";
+					busybox echo -n "  Switching apks ... "; > "${STDOUT}"
 
 					__sysrw > /dev/null
 
@@ -942,21 +950,21 @@ function __switchapk_helper () {
 
 					__sysro > /dev/null
 
-					busybox echo "done"
+					busybox echo "done" > "${STDOUT}"
 				else
-					busybox echo "  There was an error verifying your downloads"
-					busybox echo "  Switch ABORTED"
+					busybox echo "  There was an error verifying your downloads" > "${STDERR}"
+					busybox echo "  Switch ABORTED" > "${STDERR}"
 				fi
 
-				busybox echo -n "  Cleaning up ... "
+				busybox echo -n "  Cleaning up ... " > "${STDOUT}"
 				busybox rm "/cache/${new_app_file}"
 				busybox rm "/cache/${new_app_file}.chksum"
-				busybox echo "done"
+				busybox echo "done" > "${STDOUT}"
 			else
-				busybox echo "FAILED"
+				busybox echo "FAILED" > "${STDERR}"
 			fi
 		else
-			busybox echo "FAILED"
+			busybox echo "FAILED" > "${STDERR}"
 		fi
 	fi
 
@@ -973,7 +981,7 @@ function __sysro () {
 	if busybox [ $# -gt 0 ] ; then
 		__sysro_help
 	else
-		busybox echo -n "Remounting /system read-only ... "
+		busybox echo -n "Remounting /system read-only ... " > "${STDOUT}"
 
 		# i'm throwing the sleeps in there in hopes that it will fix
 		# the problems i'm having :S
@@ -982,15 +990,15 @@ function __sysro () {
 		sync
 		busybox mount -o remount,ro /system
 
-		busybox echo "done"
+		busybox echo "done" > "${STDOUT}"
 	fi
 }
 
 function __sysro_help () {
-	busybox echo "Usage:"
-	busybox echo "    sysro"
-	busybox echo ""
-	busybox echo "Mounts the /system partition read-only"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    sysro" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Mounts the /system partition read-only" > "${STDOUT}"
 }
 
 function __sysrw () {
@@ -1004,17 +1012,17 @@ function __sysrw () {
 	if busybox [ $# -gt 0 ] ; then
 		__sysrw_help
 	else
-		busybox echo -n "Remounting /system read-write ... "
+		busybox echo -n "Remounting /system read-write ... " > "${STDOUT}"
 		busybox mount -o remount,rw /system
-		busybox echo "done"
+		busybox echo "done" > "${STDOUT}"
 	fi
 }
 
 function __sysrw_help () {
-	busybox echo "Usage:"
-	busybox echo "    sysrw"
-	busybox echo ""
-	busybox echo "Mounts the /system partition read/write"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    sysrw" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Mounts the /system partition read/write" > "${STDOUT}"
 }
 
 function __zipalign_apks () {
@@ -1042,7 +1050,7 @@ function __zipalign_apks () {
 
 			# check if we are already zipaligned
 			if ! zipalign -c 4 ${apk} ; then
-				busybox echo -n "${apk} - ZipAligning ... "
+				busybox echo -n "${apk} - ZipAligning ... " > "${STDOUT}"
 
 				# nope, time to zipalign
 				zipalign -f 4 "${apk}" "${apk_cache}"
@@ -1052,12 +1060,12 @@ function __zipalign_apks () {
 					busybox cp -f "${apk_cache}" "${apk}"
 					busybox rm "${apk_cache}"
 
-					busybox echo "done";
+					busybox echo "done"; > "${STDOUT}"
 				else
-					busybox echo "ERROR";
+					busybox echo "ERROR"; > "${STDERR}"
 				fi
 			else
-				busybox echo "${apk} - Already ZipAligned. Skipping"
+				busybox echo "${apk} - Already ZipAligned. Skipping" > "${STDOUT}"
 			fi
 		done
 
@@ -1066,11 +1074,11 @@ function __zipalign_apks () {
 }
 
 function __zipalign_apks_help () {
-	busybox echo "Usage:"
-	busybox echo "    zipalign_apks"
-	busybox echo ""
-	busybox echo "Automagickally zipaligns all of the APK files found on your system"
-	busybox echo "NOTE: THIS WILL ZIPALIGN ANY APK UNDER /system OR /data"
+	busybox echo "Usage:" > "${STDOUT}"
+	busybox echo "    zipalign_apks" > "${STDOUT}"
+	busybox echo "" > "${STDOUT}"
+	busybox echo "Automagickally zipaligns all of the APK files found on your system" > "${STDOUT}"
+	busybox echo "NOTE: THIS WILL ZIPALIGN ANY APK UNDER /system OR /data" > "${STDOUT}"
 }
 
 function __scriptybox_help () {
@@ -1121,7 +1129,7 @@ function __scriptybox_help () {
 			__zipalign_apks_help
 			;;
 		*)
-			busybox echo "Please type a valid command to view its help information"
+			busybox echo "Please type a valid command to view its help information" > "${STDERR}"
 			;;
 	esac
 }
@@ -1176,31 +1184,31 @@ case ${CMD} in
 		__scriptybox_help
 		;;
 	*)
-		busybox echo "Available commands:"
-		busybox echo ""
-		busybox echo "     adblock [on|off]"
-		busybox echo "     camsounds [on|off]"
-		busybox echo "     cpuinfo"
-		busybox echo "     compcache [on|off|stats]"
-		busybox echo "     cwiid [on|off|status]"
-		busybox echo "     freemem [50mb|75mb|100mb|default]"
-		busybox echo "     halt"
-		busybox echo "     meminfo"
-		busybox echo "     mtdinfo"
-		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|"
-		busybox echo "            deskclock|devtools|email|genie|lwps|mms|"
-		busybox echo "            mp3|music|qoffice|search|spare|speech|tips|"
-		busybox echo "            vvm]" # dock
-		busybox echo "     swapinfo"
-		busybox echo "     switchapk [clock|music]"
-		busybox echo "     sysro"
-		busybox echo "     sysrw"
-		busybox echo "     zipalign_apks"
-		busybox echo ""
-		busybox echo "You can type \"scriptybox help [command]\" to see"
-		busybox echo "help related to that command"
+		busybox echo "Available commands:" > "${STDOUT}"
+		busybox echo "" > "${STDOUT}"
+		busybox echo "     adblock [on|off]" > "${STDOUT}"
+		busybox echo "     camsounds [on|off]" > "${STDOUT}"
+		busybox echo "     cpuinfo" > "${STDOUT}"
+		busybox echo "     compcache [on|off|stats]" > "${STDOUT}"
+		busybox echo "     cwiid [on|off|status]" > "${STDOUT}"
+		busybox echo "     freemem [50mb|75mb|100mb|default]" > "${STDOUT}"
+		busybox echo "     halt" > "${STDOUT}"
+		busybox echo "     meminfo" > "${STDOUT}"
+		busybox echo "     mtdinfo" > "${STDOUT}"
+		busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|" > "${STDOUT}"
+		busybox echo "            deskclock|devtools|email|genie|lwps|mms|" > "${STDOUT}"
+		busybox echo "            mp3|music|qoffice|search|spare|speech|tips|" > "${STDOUT}"
+		busybox echo "            vvm]" # dock > "${STDOUT}"
+		busybox echo "     swapinfo" > "${STDOUT}"
+		busybox echo "     switchapk [clock|music]" > "${STDOUT}"
+		busybox echo "     sysro" > "${STDOUT}"
+		busybox echo "     sysrw" > "${STDOUT}"
+		busybox echo "     zipalign_apks" > "${STDOUT}"
+		busybox echo "" > "${STDOUT}"
+		busybox echo "You can type \"scriptybox help [command]\" to see" > "${STDOUT}"
+		busybox echo "help related to that command" > "${STDOUT}"
 		;;
 esac
 
-busybox echo ""
-busybox echo "(Android $(getprop ro.build.version.release) / $(getprop ro.modversion) [$(getprop ro.build.id)] by $(getprop ro.rommanager.developerid))"
+busybox echo "" > "${STDOUT}"
+busybox echo "(Android $(getprop ro.build.version.release) / $(getprop ro.modversion) [$(getprop ro.build.id)] by $(getprop ro.rommanager.developerid))" > "${STDOUT}"
