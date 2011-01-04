@@ -582,12 +582,6 @@ function __rmapk () {
 					"Calculator" \
 					"/system/app/Calculator.apk"
 				;;
-			carhome)
-				__rmapk_helper \
-					"Car Home" \
-					"/system/app/CarHomeGoogle.apk" \
-					"/system/app/CarHomeLauncher.apk"
-				;;
 			corpcal)
 				__rmapk_helper \
 					"Corporate Calendar" \
@@ -603,11 +597,6 @@ function __rmapk () {
 					"Dev Tools" \
 					"/system/app/Development.apk"
 				;;
-			#dock)
-			#	__rmapk_helper \
-			#		"Dock" \
-			#		"/system/app/Dock.apk"
-			#	;;
 			email)
 				__rmapk_helper \
 					"Email" \
@@ -630,11 +619,6 @@ function __rmapk () {
 					"MMS" \
 					"/system/app/Mms.apk"
 				;;
-			mp3)
-				__rmapk_helper \
-					"Amazon MP3" \
-					"/system/app/com.amazon.mp3.apk"
-				;;
 			music)
 				__rmapk_helper \
 					"Music" \
@@ -644,11 +628,6 @@ function __rmapk () {
 				__rmapk_helper \
 					"QuickOffice" \
 					"/system/app/SholesQuickOffice.apk"
-				;;
-			search)
-				__rmapk_helper \
-					"Google Search" \
-					"/system/app/GoogleQuickSearchBox.apk"
 				;;
 			spare)
 				__rmapk_helper \
@@ -665,11 +644,6 @@ function __rmapk () {
 					"Tips" \
 					"/system/app/Protips.apk"
 				;;
-			vvm)
-				__rmapk_helper \
-					"Visual VM" \
-					"/system/app/VVMStub.apk"
-				;;
 			*)
 				__rmapk_help
 				;;
@@ -679,33 +653,27 @@ function __rmapk () {
 
 function __rmapk_help () {
 	busybox echo "Usage:" > "${STDOUT}"
-	busybox echo "     rmapk [alarm|browser|calc|carhome|corpcal|" > "${STDOUT}"
-	busybox echo "            deskclock|devtools|email|genie|lwps|mms|" > "${STDOUT}"
-	busybox echo "            mp3|music|qoffice|search|spare|speech|tips|" > "${STDOUT}"
-	busybox echo "            vvm]" # dock > "${STDOUT}"
+	busybox echo "     rmapk [alarm|browser|calc|corpcal|deskclock|" > "${STDOUT}"
+	busybox echo "            devtools|email|genie|lwps|mms|music|" > "${STDOUT}"
+	busybox echo "            qoffice|spare|speech|tips]" > "${STDOUT}"
 	busybox echo "" > "${STDOUT}"
 	busybox echo "Removes applications that may be unwanted on some" > "${STDOUT}"
 	busybox echo "systems.  The Applications are:" > "${STDOUT}"
 	busybox echo "     alarm - Alarm Clock" > "${STDOUT}"
 	busybox echo "     browser - Stock browser" > "${STDOUT}"
 	busybox echo "     calc - Stock calculator" > "${STDOUT}"
-	busybox echo "     carhome - Stock car home" > "${STDOUT}"
 	busybox echo "     corpcal - Corporate Calendar" > "${STDOUT}"
 	busybox echo "     deskclock - Desk Clock" > "${STDOUT}"
 	busybox echo "     devtools - Development Tools" > "${STDOUT}"
-	#busybox echo "     dock - Dock" > "${STDOUT}"
 	busybox echo "     email - Stock email" > "${STDOUT}"
 	busybox echo "     genie - News and Weather" > "${STDOUT}"
 	busybox echo "     lwps - Live Wallpapers" > "${STDOUT}"
 	busybox echo "     mms - Stock MMS" > "${STDOUT}"
-	busybox echo "     mp3 - Amazon MP3" > "${STDOUT}"
 	busybox echo "     music - Music" > "${STDOUT}"
 	busybox echo "     qoffice - QuickOffice" > "${STDOUT}"
-	busybox echo "     search - Google Search" > "${STDOUT}"
 	busybox echo "     spare - Spare Parts" > "${STDOUT}"
 	busybox echo "     speech - Speech Recorder" > "${STDOUT}"
 	busybox echo "     tips - Tips" > "${STDOUT}"
-	busybox echo "     vvm - Visual VM" > "${STDOUT}"
 }
 
 function __rmapk_helper () {
@@ -800,33 +768,8 @@ function __switchapk () {
 						;;
 				esac
 				;;
-#			launcher)
-#				case $2 in
-#					adw)
-#						__switchapk_helper \
-#							"Launcher" "ADW Launcher" \
-#							"ADWLauncher.apk" "Launcher2.apk" \
-#							"Launcher2.apk"
-#						;;
-#					stock)
-#						__switchapk_helper \
-#							"Launcher" "2.2 Stock Launcher" \
-#							"Launcher2.apk" "Launcher2.apk" \
-#							"Launcher2.apk"
-#						;;
-#					*)
-#						busybox echo "Did not understand [$@]" > "${STDOUT}"
-#						;;
-#				esac
-#				;;
 			music)
 				case $2 in
-#					eliotstocker)
-#						__switchapk_helper \
-#							"Music" "Eliot Stocker Music Overhaul" \
-#							"EliotStockerMusic.apk" "Music.apk" \
-#							"Music.apk"
-#						;;
 					milestone)
 						__switchapk_helper \
 							"Music" "Milestone Music" \
@@ -844,25 +787,6 @@ function __switchapk () {
 						;;
 				esac
 				;;
-#			phone)
-#				case $2 in
-#					cytown)
-#						__switchapk_helper \
-#							"Phone" "Cytown Phone Overhaul" \
-#							"CytownPhone.apk" "Phone.apk" \
-#							"Phone.apk"
-#						;;
-#					stock)
-#						__switchapk_helper \
-#							"Phone" "2.2 Stock Phone" \
-#							"Phone.apk" "Phone.apk" \
-#							"Phone.apk"
-#						;;
-#					*)
-#						busybox echo "Did not understand [$@]" > "${STDOUT}"
-#						;;
-#				esac
-#				;;
 			*)
 				__switchapk_help
 				;;
@@ -876,10 +800,8 @@ function __switchapk_help {
 	busybox echo "" > "${STDOUT}"
 	busybox echo "Switches default applications for the following:" > "${STDOUT}"
 	busybox echo "    clock [alarm|desk] - either the AlarmClock or DeskClock app" > "${STDOUT}"
-#	busybox echo "    launcher [adw|stock] - either ADW or Stock Launcher" > "${STDOUT}"
 	busybox echo "    music [milestone|stock] - either the Milestone or stock 2.2" > "${STDOUT}"
         busybox echo "             Music app" > "${STDOUT}"
-#	busybox echo "    phone [cytown|stock] - either the Cytown or Stock Phone" > "${STDOUT}"
 }
 
 function __switchapk_helper () {
